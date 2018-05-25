@@ -1,0 +1,44 @@
+# Build and temp dirs
+tmp
+bin
+build
+*/**/modules
+*/**/modules*
+libs/
+*.zip
+
+# IDE and other tools
+.apt_generated
+build.properties
+.svn
+*.pyc
+*~.nib/
+*.pbxuser
+*.perspective
+*.perspectivev3
+*.xcworkspace/
+xcuserdata
+*.xcuserstate
+*.xcuserdata*
+.idea/
+
+# Android intermediate files and folders
+android/clean
+android/ant_clean
+android/.classpath
+android/.settings
+android/dist/
+android/launch-*
+android/java-sources.txt
+nbproject
+
+# iOS intermediate files and folders
+/ios/metadata.json
+/ios/dist
+Carthage
+
+# System dot-files
+.DS_Store
+
+# Ignore .frameworks in platform folder
+platform/*.framework
