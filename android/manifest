@@ -15,4 +15,4 @@ name: ti.socketio
 moduleid: ti.socketio
 guid: 65fbdc59-432f-40d8-8ea9-02799887db3c
 platform: android
-minsdk: 7.2.0.v20180423082013
+minsdk: 7.1.0.GA
