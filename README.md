@@ -47,7 +47,7 @@ Based on the [socket.io-client-java](https://github.com/socketio/socket.io-clien
 ## Contributions
 
 Open source contributions are greatly appreciated! If you have a bugfix, improvement or new feature, please create
-[an issue](https://github.com/appcelerator-modules/ti.socketio/issues/new) first and submit a [pull request](https://github.com/appcelerator-modules/ti.socketio/pulls/new) against master.
+[an issue](https://github.com/appcelerator-modules/titanium-socketio/issues/new) first and submit a [pull request](https://github.com/appcelerator-modules/titanium-socketio/pulls/new) against master.
 
 ## Getting Help
 
