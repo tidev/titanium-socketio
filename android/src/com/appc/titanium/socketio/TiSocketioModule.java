@@ -15,8 +15,7 @@ import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiConfig;
 
-
-@Kroll.module(name="TiSocketio", id="com.appc.titanium.socketio")
+@Kroll.module(name = "TiSocketio", id = "com.appc.titanium.socketio")
 public class TiSocketioModule extends KrollModule
 {
 
@@ -55,11 +54,9 @@ public class TiSocketioModule extends KrollModule
 		return "hello world";
 	}
 
-
 	@Kroll.setProperty
-	public void setExampleProp(String value) {
+	public void setExampleProp(String value)
+	{
 		Log.d(LCAT, "set example property: " + value);
 	}
-
 }
-

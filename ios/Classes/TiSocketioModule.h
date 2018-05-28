@@ -8,7 +8,6 @@
 #import "TiModule.h"
 
 @interface TiSocketioModule : TiModule {
-
 }
 
 @end
