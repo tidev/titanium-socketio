@@ -43,3 +43,5 @@ Carthage
 
 # Ignore .frameworks in platform folder
 platform/*.framework
+/ios/platform/SocketIO.framework
+/ios/platform/Starscream.framework

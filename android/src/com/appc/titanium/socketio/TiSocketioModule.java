@@ -23,7 +23,7 @@ import io.socket.client.IO.Options;
 import io.socket.client.Socket;
 
 
-@Kroll.module(name="TiSocketio", id="ti.socketio")
+@Kroll.module(name = "TiSocketio", id = "ti.socketio")
 public class TiSocketioModule extends KrollModule
 {
 
@@ -58,6 +58,4 @@ public class TiSocketioModule extends KrollModule
 		SocketIOClientProxy clientProxy = new SocketIOClientProxy(socket);
 		return clientProxy;
 	}
-
 }
-
