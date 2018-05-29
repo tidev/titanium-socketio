@@ -15,4 +15,4 @@ name: ti.socketio
 moduleid: ti.socketio
 guid: 65fbdc59-432f-40d8-8ea9-02799887db3c
 platform: iphone
-minsdk: 7.1.0.GA
+minsdk: 7.0.0.GA
