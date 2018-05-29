@@ -21,6 +21,7 @@ xcuserdata
 *.xcuserstate
 *.xcuserdata*
 .idea/
+*.iml
 
 # Android intermediate files and folders
 android/clean
