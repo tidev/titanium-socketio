@@ -60,7 +60,7 @@ public class TiSocketioModule extends KrollModule
 			jsOptions.remove("autoConnect");
 			jsOptions.remove("parser");
 
-			this.applyOptions(jsOptions, socketOptions);
+			socketOptions = this.createSocketOptions(jsOptions);
 		}
 
 		Log.d(LCAT, String.format("Connecting to socket on %s with options %s", uri, options));
@@ -72,8 +72,9 @@ public class TiSocketioModule extends KrollModule
 		return new SocketIOClientProxy(socket);
 	}
 
-	private void applyOptions(HashMap<String, Object> jsOptions, Options socketOptions)
+	private Options createSocketOptions(HashMap<String, Object> jsOptions)
 	{
+		Options socketOptions = new Options();
 		Class socketOptionsClass = socketOptions.getClass();
 		for (Map.Entry<String, Object> entry : jsOptions.entrySet()) {
 			String optionName = entry.getKey();
@@ -96,6 +97,8 @@ public class TiSocketioModule extends KrollModule
 				}
 			}
 		}
+
+		return socketOptions;
 	}
 
 	private String buildQueryString(HashMap<?, ?> queryParams)
