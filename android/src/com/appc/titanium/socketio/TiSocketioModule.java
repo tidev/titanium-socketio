@@ -15,8 +15,12 @@ import org.appcelerator.kroll.common.TiConfig;
 
 import org.appcelerator.titanium.TiApplication;
 
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Map;
 
 import io.socket.client.IO;
 import io.socket.client.IO.Options;
@@ -30,9 +34,6 @@ public class TiSocketioModule extends KrollModule
 	// Standard Debugging variables
 	private static final String LCAT = "TiSocketioModule";
 	private static final boolean DBG = TiConfig.LOGD;
-
-	// You can define constants with @Kroll.constant, for example:
-	// @Kroll.constant public static final String EXTERNAL_NAME = value;
 
 	public TiSocketioModule()
 	{
@@ -51,11 +52,75 @@ public class TiSocketioModule extends KrollModule
 	public SocketIOClientProxy connect(String uri, @Kroll.argument(optional=true) HashMap options) throws URISyntaxException
 	{
 		Options socketOptions = new Options();
+		boolean autoConnect = true;
+		if (options != null) {
+			HashMap<String, Object> jsOptions = new HashMap<String, Object>(options);
 
+			autoConnect = (boolean)jsOptions.getOrDefault("autoConnect", true);
+			jsOptions.remove("autoConnect");
+			jsOptions.remove("parser");
+
+			socketOptions = this.createSocketOptions(jsOptions);
+		}
+
+		Log.d(LCAT, String.format("Connecting to socket on %s with options %s", uri, options));
 		Socket socket = IO.socket(uri, socketOptions);
-		socket.connect();
+		if (autoConnect) {
+			socket.connect();
+		}
 
-		SocketIOClientProxy clientProxy = new SocketIOClientProxy(socket);
-		return clientProxy;
+		return new SocketIOClientProxy(socket);
+	}
+
+	private Options createSocketOptions(HashMap<String, Object> jsOptions)
+	{
+		Options socketOptions = new Options();
+		Class socketOptionsClass = socketOptions.getClass();
+		for (Map.Entry<String, Object> entry : jsOptions.entrySet()) {
+			String optionName = entry.getKey();
+			Object optionValue = entry.getValue();
+
+			if (optionName.equals("query") && optionValue instanceof HashMap) {
+				optionValue = this.buildQueryString((HashMap<?, ?>)optionValue);
+			}
+
+			try {
+				Field propertyField = socketOptionsClass.getField(optionName);
+				propertyField.set(socketOptions, optionValue);
+			} catch (Exception e) {
+				if (e instanceof NoSuchFieldException) {
+					Log.w(LCAT, String.format("There is no option named \"%s\".", optionName));
+				} else if (e instanceof IllegalArgumentException) {
+					Log.w(LCAT, String.format("Invalid value for option \"%s\".", optionName));
+				} else {
+					Log.w(LCAT, String.format("Error while trying to set socket option %s. Error: %s", optionName, e.getMessage()));
+				}
+			}
+		}
+
+		return socketOptions;
+	}
+
+	private String buildQueryString(HashMap<?, ?> queryParams)
+	{
+		StringBuilder queryStringBuilder = new StringBuilder("");
+		for (Map.Entry<?, ?> entry : queryParams.entrySet()) {
+			if (queryStringBuilder.length() > 0) {
+				queryStringBuilder.append("&");
+			}
+			String encodedParamName = this.urlEncode(entry.getKey().toString());
+			String encodedParamValue = this.urlEncode(entry.getValue().toString());
+			queryStringBuilder.append(String.format("%s=%s", encodedParamName, encodedParamValue));
+		}
+
+		return queryStringBuilder.toString();
+	}
+
+	private String urlEncode(String urlPart) {
+		try {
+			return URLEncoder.encode(urlPart, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			return urlPart;
+		}
 	}
 }
