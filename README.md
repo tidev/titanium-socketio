@@ -9,8 +9,8 @@ Install the module to you project or globally by copying it into the modules fol
 ```xml
 <modules>
     <module platform="android">ti.socketio</module>
-    <module platform="ios">ti.socketio</module>
-</module>
+    <module platform="iphone">ti.socketio</module>
+</modules>
 ```
 
 ## Usage
