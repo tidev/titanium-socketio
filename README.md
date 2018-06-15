@@ -2,6 +2,14 @@
 
 [Socket.IO](https://socket.io) module for Titanium using native Android and iOS clients.
 
+## Requirements
+
+- [x] Titanium SDK 7.0.0+
+- [x] iOS: Swift 4.1
+
+**NOTE**: The iOS module is built with Swift 4.1. Because of Swift's still missing ABI Stability (work in progress), 
+you need to have the same Swift version installed that is used by the Swift-based framework, in this case Starscream.framework. You can check your current Swift version by using `swift -v` from the Terminal.
+
 ## Getting started
 
 Install the module to you project or globally by copying it into the modules folder. After that enable it in your tiapp.xml.
