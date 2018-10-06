@@ -130,9 +130,9 @@
       lastArgumentIndex -= 1;
     }
 
-    for (NSUInteger i = 1; i <= lastArgumentIndex; i++) {
-      [data addObject:[args objectAtIndex:i]];
-    }
+    [args enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+      [data addObject:obj];
+    }];
 
     data = [self sanitizeValue:data];
   }

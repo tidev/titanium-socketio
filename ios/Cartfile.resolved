@@ -1,2 +1,2 @@
 github "daltoniam/Starscream" "3.0.5"
-github "socketio/socket.io-client-swift" "v13.2.0"
+github "socketio/socket.io-client-swift" "v13.3.1"
