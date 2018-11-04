@@ -35,14 +35,14 @@
   return self.socket.sid;
 }
 
-- (BOOL)connected
+- (NSNumber *)connected
 {
-  return self.socket.status == SocketIOStatusConnected;
+  return @(self.socket.status == SocketIOStatusConnected);
 }
 
-- (BOOL)disconnected
+- (NSNumber *)disconnected
 {
-  return self.socket.status == SocketIOStatusDisconnected;
+  return @(self.socket.status == SocketIOStatusDisconnected);
 }
 
 #pragma mark - Public JS methods
