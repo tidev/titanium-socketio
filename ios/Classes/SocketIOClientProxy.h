@@ -16,8 +16,8 @@
 - (instancetype)initWithSocket:(SocketIOClient *)socket;
 
 - (NSString *)id;
-- (BOOL)connected;
-- (BOOL)disconnected;
+- (NSNumber *)connected;
+- (NSNumber *)disconnected;
 
 - (void)open:(id)args;
 - (void)connect:(id)args;
