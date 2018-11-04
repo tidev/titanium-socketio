@@ -130,7 +130,9 @@
       lastArgumentIndex -= 1;
     }
 
-    [args enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    // Exclude the first argument to only map the data between the second and penultimate index
+    NSArray *metaArguments = [args subarrayWithRange:NSMakeRange(1, lastArgumentIndex)];
+    [metaArguments enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
       [data addObject:obj];
     }];
 
