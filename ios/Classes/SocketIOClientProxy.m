@@ -95,7 +95,7 @@
 
 - (void)off:(id)args
 {
-  ENSURE_TYPE(args, NSArray);
+  ENSURE_TYPE_OR_NIL(args, NSArray);
 
   if ([args count] == 0) {
     [self.socket removeAllHandlers];
