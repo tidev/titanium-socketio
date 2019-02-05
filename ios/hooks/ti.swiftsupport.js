@@ -6,7 +6,7 @@
 
 'use strict';
 
-exports.id = 'ti.swiftsupport';
+exports.id = 'ti.socketio.swiftsupport';
 exports.cliVersion = '>=3.2';
 exports.init = init;
 
@@ -20,7 +20,7 @@ function init(logger, config, cli, appc) {
 			logger.info('Enabling Swift support ...');
 
 			var xobjs = data.args[0].hash.project.objects;
-															
+
 			Object.keys(xobjs.PBXNativeTarget).forEach(function (targetUuid) {
 				var target = xobjs.PBXNativeTarget[targetUuid];
 				if (target && typeof target === 'object') {

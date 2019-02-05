@@ -7,6 +7,7 @@
 
 #import "TiSocketioModule.h"
 #import "SocketIOClientProxy.h"
+#import "SocketManagerProxy.h"
 #import "TiBase.h"
 #import "TiHost.h"
 #import "TiUtils.h"
@@ -15,7 +16,7 @@
 
 @interface TiSocketioModule ()
 
-@property (nonatomic, strong) SocketManager *manager;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, SocketManagerProxy *> *managers;
 
 @end
 
@@ -32,7 +33,7 @@
 // This is generated for your module, please do not change it
 - (NSString *)moduleId
 {
-  return @"com.appc.titanium.socketio";
+  return @"ti.socketio";
 }
 
 #pragma mark - Lifecycle
@@ -42,6 +43,9 @@
   // This method is called when the module is first loaded
   // You *must* call the superclass
   [super startup];
+
+  self.managers = [NSMutableDictionary new];
+
   DebugLog(@"[DEBUG] %@ loaded", self);
 }
 
@@ -50,77 +54,79 @@
 - (SocketIOClientProxy *)connect:(id)args
 {
   ENSURE_TYPE(args, NSArray);
-
   NSURL *url = [[NSURL alloc] initWithString:[TiUtils stringValue:[args objectAtIndex:0]]];
-  NSMutableDictionary *options = nil;
+  NSMutableDictionary *options = [NSMutableDictionary new];
   if ([args count] == 2) {
-    id jsOptions = [args objectAtIndex:1];
-    ENSURE_TYPE(jsOptions, NSDictionary);
-    options = [self convertOptions:jsOptions];
+    ENSURE_ARG_AT_INDEX(options, args, 1, NSMutableDictionary);
   }
 
-  BOOL autoConnect = [TiUtils boolValue:@"autoConnect" properties:options def:YES];
-  [options removeObjectForKey:@"autoConnect"];
+  return [self lookupClientForUrl:url options:options];
+}
 
-  self.manager = [[SocketManager alloc] initWithSocketURL:url config:options];
-  if (autoConnect) {
-    [self.manager connect];
+- (SocketManagerProxy *)Manager:(id)args
+{
+  ENSURE_TYPE(args, NSArray);
+  ENSURE_ARG_COUNT(args, 1)
+  NSString *urlString = nil;
+  ENSURE_ARG_AT_INDEX(urlString, args, 0, NSString)
+  NSURL *url = [[NSURL alloc] initWithString:urlString];
+  NSDictionary *options = [NSDictionary new];
+  if ([args count] == 2) {
+    ENSURE_ARG_AT_INDEX(options, args, 1, NSDictionary);
   }
-
-  SocketIOClient *socket;
-  if (url.path == nil || [url.path isEqualToString:@""] || [url.path isEqualToString:@"/"]) {
-    socket = self.manager.defaultSocket;
-  } else {
-    socket = [self.manager socketForNamespace:url.path];
-  }
-  SocketIOClientProxy *socketProxy = [[SocketIOClientProxy alloc] initWithSocket:socket];
-
-  return socketProxy;
+  return [[SocketManagerProxy alloc] initWithContext:self.pageContext url:url options:options];
 }
 
 #pragma mark - Private methods
 
-- (NSMutableDictionary *)convertOptions:(NSDictionary *)jsOptions
+- (SocketIOClientProxy *)lookupClientForUrl:(NSURL *)url options:(NSMutableDictionary *)options
 {
-  NSMutableDictionary *options = [NSMutableDictionary dictionaryWithDictionary:jsOptions];
+  NSURLComponents *urlComponents = [[NSURLComponents alloc] initWithURL:url resolvingAgainstBaseURL:NO];
 
-  [self options:options rename:@"reconnection" to:@"reconnects"];
-  [self options:options rename:@"reconnectionAttempts" to:@"reconnectAttempts"];
-  [self options:options rename:@"reconnectionDelay" to:@"reconnectWait"];
-
-  [self options:options removeUnsupported:@"reconnectionDelayMax"];
-  [self options:options removeUnsupported:@"randomizationFactor"];
-  [self options:options removeUnsupported:@"parser"];
-
-  NSDictionary *queryParams = [options objectForKey:@"query"];
-  if (queryParams != nil) {
-    [options setObject:queryParams forKey:@"connectParams"];
-    [options removeObjectForKey:@"query"];
+  // make sure we always have a scheme and port
+  if (urlComponents.scheme == nil) {
+    urlComponents.scheme = @"https";
+  }
+  if (urlComponents.port == nil) {
+    if ([urlComponents.scheme isEqualToString:@"http"] || [urlComponents.scheme isEqualToString:@"ws"]) {
+      urlComponents.port = @(80);
+    } else if ([urlComponents.scheme isEqualToString:@"https"] || [urlComponents.scheme isEqualToString:@"wss"]) {
+      urlComponents.port = @(443);
+    }
   }
 
-  return options;
-}
+  NSString *path = urlComponents.path != nil && urlComponents.path.length > 0 ? urlComponents.path : @"/";
+  urlComponents.path = nil;
 
-- (void)options:(NSMutableDictionary *)options rename:(NSString *)fromName to:(NSString *)toName
-{
-  id optionValue = [options objectForKey:fromName];
-  if (optionValue == nil) {
-    return;
+  // assign parameters from query string
+  if (urlComponents.queryItems != nil && options[@"connectParams"] == nil) {
+    NSMutableDictionary *connectParams = [NSMutableDictionary new];
+    for (NSURLQueryItem *queryItem in urlComponents.queryItems) {
+      connectParams[queryItem.name] = queryItem.value;
+    }
+    options[@"connectParams"] = connectParams;
+  }
+  urlComponents.query = nil;
+
+  NSString *cacheIdentifier = urlComponents.string;
+
+  BOOL forceNew = [TiUtils boolValue:@"forceNew" properties:options def:NO];
+  [options removeObjectForKey:@"forceNew"];
+  BOOL sameNamespace = self.managers[cacheIdentifier].manager.nsps[path] != nil;
+  BOOL newConnection = sameNamespace || forceNew;
+
+  SocketManagerProxy *manager;
+  if (newConnection) {
+    manager = [[SocketManagerProxy alloc] initWithContext:self.pageContext url:urlComponents.URL options:options];
+  } else {
+    if (self.managers[cacheIdentifier] == nil) {
+      manager = [[SocketManagerProxy alloc] initWithContext:self.pageContext url:urlComponents.URL options:options];
+      self.managers[cacheIdentifier] = manager;
+    }
+    manager = self.managers[cacheIdentifier];
   }
 
-  [options removeObjectForKey:fromName];
-  [options setObject:optionValue forKey:toName];
-}
-
-- (void)options:(NSMutableDictionary *)options removeUnsupported:(NSString *)optionName
-{
-  id optionValue = [options objectForKey:optionName];
-  if (optionValue == nil) {
-    return;
-  }
-
-  NSLog(@"[WARN] The option %@ is not supported on the iOS client and will be ignored.", optionName);
-  [options removeObjectForKey:optionName];
+  return [manager socket:@[path, options]];
 }
 
 @end
