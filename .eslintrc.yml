@@ -1,0 +1,7 @@
+extends:
+  - axway/env-node
+  - axway/titanium
+plugins:
+  - jasmine
+env:
+  jasmine: true
