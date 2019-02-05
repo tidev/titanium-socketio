@@ -45,3 +45,6 @@ Carthage
 platform/*.framework
 /ios/platform/SocketIO.framework
 /ios/platform/Starscream.framework
+
+# Dependency direcotires
+node_modules/
