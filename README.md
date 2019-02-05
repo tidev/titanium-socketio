@@ -7,7 +7,7 @@
 - [x] Titanium SDK 7.0.0+
 - [x] iOS: Swift 4.2
 
-**NOTE**: The iOS module is built with Swift 4.2. Because of Swift's still missing ABI stability (work in progress), you need to have the same Swift version installed that was used to build the release version of this module. You can check your current Swift version by using `swift -v` from the terminal.
+> 💡 The iOS module is built with Swift 4.2. Because of Swift's still missing ABI stability (work in progress), you need to have the same Swift version installed that was used to build the release version of this module. You can check your current Swift version by using `swift -v` from the terminal.
 
 ## Getting started
 
@@ -15,8 +15,8 @@ Install the module to your project or globally by copying it into the modules fo
 
 ```xml
 <modules>
-    <module platform="android">ti.socketio</module>
-    <module platform="iphone">ti.socketio</module>
+  <module platform="android">ti.socketio</module>
+  <module platform="iphone">ti.socketio</module>
 </modules>
 ```
 
@@ -28,24 +28,72 @@ This module aims to be as compatible with the web client as possible. Please ref
 const io = require('ti.socketio');
 const socket = io.connect('http://localhost:8080');
 socket.on('connect', function() {
-    Ti.API.debug('socket connected');
+  Ti.API.debug('socket connected');
 
-    socket.emit('hello', 'world');
+  socket.emit('hello', 'world');
 });
 ```
 
-Currently supported methods are:
+Currently supported methods and properties are:
 
-* `io([url][, options])` (exposed as `connect`)
-* `socket.open()`
-* `socket.connect()`
-* `socket.emit(eventName[, ...args][, ack])`
-* `socket.on(eventName, callback)` (Note: Using acknowledgement callbacks not supported yet)
-* `socket.off([eventName], [fn])`
-* `socket.close()`
-* `socket.disconnect()`
+### IO
+
+- `io(url[, options])` (exposed as `connect`, note that `url` is not optional)
+- `socket.id`
+- `socket.connected`
+- `socket.disconnected`
+- `socket.io`
+- `socket.open()`
+- `socket.connect()`
+- `socket.emit(eventName[, ...args][, ack])`
+- `socket.on(eventName, callback)` (Note: Using acknowledgement callbacks not supported yet)
+- `socket.off([eventName], [fn])`
+- `socket.close()`
+- `socket.disconnect()`
+
+### Manager
+
+- `Manager(url[, options])` (note that url is not optional)
+- `manager.socket(nsp)` (options are not supportedl)
+- `manager.open()` (callback is not supported)
+- `manager.connect()`
+- `manager.close()` (noop on Android, all sockets need to be closed individually)
+- `manager.dsconnect()`
 
 You can pass the option keys from both JS and native when creating a new socket. But only options that are actually supported on the native side will be converted to the matching configuration option. For example the JS [`query`](https://socket.io/docs/client-api/#new-manager-url-options) option will be converted to the [`connectionParams`](https://nuclearace.github.io/Socket.IO-Client-Swift/Enums/SocketIOClientOption.html#/s:8SocketIO0A14IOClientOptionO13connectParamsACs10DictionaryVySSypGcACmF) option in the native iOS framework.
+
+## Limitations
+
+Due to different architecture of the native frameworks and the web client there are a few things you need to be aware of when using this module.
+
+### Events on iOS
+
+The native clients don't have the concept of auto connect (which is the default for the web client). We emulate this by automatically connecting the socket for you if you don't explicitly specify `autoConnect: false` in the options.
+
+However, this impacts emitting events on iOS where you need to explicity wait for a socket to be connected before you can start emitting events.
+
+```js
+import io from 'ti.socketio';
+
+const socket = io.connect('http://localhost');
+socket.on('connect', () => {
+  socket.emit('myevent');
+});
+```
+
+This is due to a limitation in the iOS native client which discards any events before a socket is connected. The Android client will store events in a buffer and send them automatically once connected.
+
+#### Missing events
+
+- `reconnect` (use `connect` instead)
+- `reconnect_error` (use `error` instead)
+- `reconnect_failed` (use `error` instead)
+
+#### Other event notes
+
+- `connect_error` is the same as `error`. You need to check the error message to see what kind of error happened.
+- `reconnect_attempt` does not report the number of reconnect attempts.
+- `pong` does not report the number ms elapsed since `ping`.
 
 ## Useful links
 
