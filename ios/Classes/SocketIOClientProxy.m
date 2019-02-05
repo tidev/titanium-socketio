@@ -5,6 +5,7 @@
 //  Created by Jan Vennemann on 20.05.18.
 //
 
+#import "SocketManagerProxy.h"
 #import "SocketIOClientProxy.h"
 #import "TiUtils.h"
 
@@ -12,17 +13,27 @@
 
 @interface SocketIOClientProxy ()
 
+@property (nonatomic, strong) SocketIOClient *socket;
 @property (nonatomic, strong) NSMapTable<KrollCallback *, NSUUID *> *handlerIdentifiers;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSMutableSet *> *eventHandlers;
+@property (nonatomic, strong) NSDictionary<NSString *, NSString *> *eventRenamingMap;
 
 @end
 
 @implementation SocketIOClientProxy
 
-- (instancetype)initWithSocket:(SocketIOClient *)socket
+- (instancetype)initWithContext:(id<TiEvaluator>)context socket:(SocketIOClient *)socket manager:(SocketManagerProxy *)manager
 {
-  if (self = [self init]) {
+  if (self = [self _initWithPageContext:context]) {
+    _io = manager;
     self.socket = socket;
     self.handlerIdentifiers = [NSMapTable weakToStrongObjectsMapTable];
+    self.eventHandlers = [NSMutableDictionary new];
+    self.eventRenamingMap = @{
+                              @"connect_error": @"error",
+                              @"reconnect_attempt": @"reconnectAttempt",
+                              @"reconnecting": @"reconnectAttempt"
+                              };
   }
 
   return self;
@@ -32,7 +43,7 @@
 
 - (NSString *)id
 {
-  return self.socket.sid;
+  return self.socket.status == SocketIOStatusConnected ? self.socket.sid : nil;
 }
 
 - (NSNumber *)connected
@@ -57,12 +68,15 @@
   [self.socket connect];
 }
 
-- (NSString *)on:(id)args
+- (SocketIOClientProxy *)on:(id)args
 {
   ENSURE_TYPE(args, NSArray);
   ENSURE_ARG_COUNT(args, 2);
 
   NSString *eventName = [TiUtils stringValue:[args objectAtIndex:0]];
+  if (self.eventRenamingMap[eventName] != nil) {
+    eventName = self.eventRenamingMap[eventName];
+  }
   KrollCallback *callback = [args objectAtIndex:1];
   NSUUID *handlerId = [self.socket on:eventName
                              callback:^(NSArray *data, SocketAckEmitter *ack) {
@@ -71,49 +85,67 @@
                                [callback call:data thisObject:nil];
                              }];
   [self.handlerIdentifiers setObject:handlerId forKey:callback];
+  [self storeEventHandler:callback forEvent:eventName];
 
-  return [handlerId UUIDString];
+  return self;
 }
 
-- (NSString *)once:(id)args
+- (SocketIOClientProxy *)once:(id)args
 {
   ENSURE_TYPE(args, NSArray);
   ENSURE_ARG_COUNT(args, 2);
 
   NSString *eventName = [TiUtils stringValue:[args objectAtIndex:0]];
+  if (self.eventRenamingMap[eventName] != nil) {
+    eventName = self.eventRenamingMap[eventName];
+  }
   KrollCallback *callback = [args objectAtIndex:1];
   NSUUID *handlerId = [self.socket once:eventName
                                callback:^(NSArray *data, SocketAckEmitter *ack) {
                                  // TODO: Handle ack callback
                                  [self.handlerIdentifiers removeObjectForKey:callback];
                                  [callback call:data thisObject:nil];
+                                 [self removeEventHandler:callback forEvent:eventName];
                                }];
   [self.handlerIdentifiers setObject:handlerId forKey:callback];
+  [self storeEventHandler:callback forEvent:eventName];
 
-  return [handlerId UUIDString];
+  return self;
 }
 
-- (void)off:(id)args
+- (SocketIOClientProxy *)off:(id)args
 {
   ENSURE_TYPE_OR_NIL(args, NSArray);
 
-  if ([args count] == 0) {
+  if (args == nil) {
     [self.socket removeAllHandlers];
+    [self removeAllEventHandlers];
     [self.handlerIdentifiers removeAllObjects];
   } else if ([args count] == 1) {
     NSString *eventName = [TiUtils stringValue:[args objectAtIndex:0]];
+    if (self.eventRenamingMap[eventName] != nil) {
+      eventName = self.eventRenamingMap[eventName];
+    }
     [self.socket off:eventName];
+    [self removeAllEventHandlersForEvent:eventName];
   } else if ([args count] == 2) {
+    NSString *eventName = [TiUtils stringValue:[args objectAtIndex:0]];
+    if (self.eventRenamingMap[eventName] != nil) {
+      eventName = self.eventRenamingMap[eventName];
+    }
     KrollCallback *handler = [args objectAtIndex:1];
     NSUUID *handlerId = [self.handlerIdentifiers objectForKey:handler];
     if (handlerId != nil) {
       [self.socket offWithId:handlerId];
       [self.handlerIdentifiers removeObjectForKey:handler];
+      [self removeEventHandler:handler forEvent:eventName];
     }
   }
+  
+  return self;
 }
 
-- (void)emit:(id)args
+- (SocketIOClientProxy *)emit:(id)args
 {
   ENSURE_TYPE(args, NSArray);
   ENSURE_ARG_COUNT(args, 1);
@@ -147,6 +179,8 @@
   } else {
     [self.socket emit:eventName with:data];
   }
+  
+  return self;
 }
 
 - (void)close:(id)args
@@ -159,6 +193,16 @@
   [self.socket disconnect];
 }
 
+#pragma mark - Public methods
+
+- (void)fireClientEvent:(NSString *)eventName data:(NSArray *)data
+{
+  NSMutableSet *handlers = self.eventHandlers[eventName];
+  for (KrollCallback *callback in handlers) {
+    [callback call:data thisObject:nil];
+  }
+}
+
 #pragma mark - Private methods
 
 - (id)sanitizeValue:(id)value
@@ -169,6 +213,54 @@
     return [TiUtils jsonParse:stringyfiedValue];
   } else {
     return value;
+  }
+}
+
+/**
+Stores an event handler for the given event name.
+
+For compatibility with the web client we expose the method on, once and off.
+This delegates to our internal event handling using addEventListener to take
+care of safely storing the handler function and protecting it against GC.
+ */
+- (void)storeEventHandler:(KrollCallback *)callback forEvent:(NSString *)eventName
+{
+  [self addEventListener:@[eventName, callback]];
+
+  NSMutableSet *handlers = self.eventHandlers[eventName];
+  if (handlers == nil) {
+    handlers = [NSMutableSet new];
+  }
+  [handlers addObject:callback];
+}
+
+- (void)removeEventHandler:(KrollCallback *)callback forEvent:(NSString *)eventName
+{
+  NSMutableSet *handlers = self.eventHandlers[eventName];
+  if (handlers != nil) {
+    [handlers removeObject:callback];
+  }
+
+  [self removeEventListener:@[eventName, callback]];
+}
+
+- (void)removeAllEventHandlersForEvent:(NSString *)eventName
+{
+  NSMutableSet *handlers = self.eventHandlers[eventName];
+  if (handlers == nil) {
+    return;
+  }
+  for (KrollCallback *callback in handlers) {
+    [self removeEventListener:@[eventName, callback]];
+  }
+  [handlers removeAllObjects];
+  [self.eventHandlers removeObjectForKey:eventName];
+}
+
+- (void)removeAllEventHandlers
+{
+  for (NSString *eventName in self.eventHandlers.allKeys) {
+    [self removeAllEventHandlersForEvent:eventName];
   }
 }
 

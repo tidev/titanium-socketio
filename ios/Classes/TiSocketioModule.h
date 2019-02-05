@@ -7,7 +7,12 @@
 
 #import "TiModule.h"
 
-@interface TiSocketioModule : TiModule {
-}
+@class SocketIOClientProxy;
+@class SocketManagerProxy;
+
+@interface TiSocketioModule : TiModule
+
+- (SocketIOClientProxy *)connect:(id)args;
+- (SocketManagerProxy *)Manager:(id)args;
 
 @end
