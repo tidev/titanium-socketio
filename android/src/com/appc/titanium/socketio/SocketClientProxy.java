@@ -14,45 +14,62 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.common.TiConfig;
-import org.appcelerator.titanium.TiC;
 import org.appcelerator.titanium.util.TiConvert;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.ref.WeakReference;
+import android.util.Pair;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.WeakHashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+
+import com.sun.java_cup.internal.runtime.virtual_parse_stack;
 
 import io.socket.client.Ack;
 import io.socket.client.Socket;
-import io.socket.client.SocketIOException;
 import io.socket.emitter.Emitter.Listener;
 
 @Kroll.proxy(creatableInModule=TiSocketioModule.class)
-public class SocketIOClientProxy extends KrollProxy
+public class SocketClientProxy extends KrollProxy
 {
 	// Standard Debugging variables
 	private static final String LCAT = "SocketIOClientProxy";
 	private static final boolean DBG = TiConfig.LOGD;
 
 	private Socket socket;
-	private WeakHashMap<KrollFunction, WeakReference<Listener>> callbackListenerMap;
+	private SocketManagerProxy manager;
+	private HashMap<String, HashSet<Pair<KrollFunction, Listener>>> eventHandlers;
 
 	// Constructor
-	public SocketIOClientProxy(Socket socket)
+	public SocketClientProxy(Socket socket, SocketManagerProxy manager)
 	{
 		super();
 
 		this.socket = socket;
-		this.callbackListenerMap = new WeakHashMap<>();
+		this.manager = manager;
+		this.eventHandlers = new HashMap<String, HashSet<Pair<KrollFunction, Listener>>>();
+	}
+
+	// Properties
+	@Kroll.getProperty
+	public String getId()
+	{
+		return this.getConnected() ? this.socket.id() : null;
 	}
 
 	@Kroll.getProperty
 	public boolean getConnected()
 	{
 		return this.socket.connected();
+	}
+
+	@Kroll.getProperty
+	public SocketManagerProxy getIo()
+	{
+		return this.manager;
 	}
 
 	// Methods
@@ -69,7 +86,7 @@ public class SocketIOClientProxy extends KrollProxy
 	}
 
 	@Kroll.method
-	public void on(final String eventName, final KrollFunction callback)
+	public SocketClientProxy on(final String eventName, final KrollFunction callback)
 	{
 		Listener listener = new Listener() {
 			@Override
@@ -79,11 +96,13 @@ public class SocketIOClientProxy extends KrollProxy
 			}
 		};
 		this.socket.on(eventName, listener);
-		this.callbackListenerMap.put(callback, new WeakReference<>(listener));
+		this.storeEventHandler(eventName, callback, listener);
+
+		return this;
 	}
 
 	@Kroll.method
-	public void once(String eventName, final KrollFunction callback)
+	public SocketClientProxy once(String eventName, final KrollFunction callback)
 	{
 		Listener listener = new Listener() {
 			@Override
@@ -93,33 +112,43 @@ public class SocketIOClientProxy extends KrollProxy
 			}
 		};
 		this.socket.once(eventName, listener);
-		this.callbackListenerMap.put(callback, new WeakReference<>(listener));
+		this.storeEventHandler(eventName, callback, listener);
+
+		return this;
 	}
 
 	@Kroll.method
-	public void off()
+	public SocketClientProxy off()
 	{
 		this.socket.off();
+		this.removeAllEventHandlers();
+
+		return this;
 	}
 
 	@Kroll.method
-	public void off(String eventName)
+	public SocketClientProxy off(String eventName)
 	{
 		this.socket.off(eventName);
+		this.removeEventHandler(eventName);
+
+		return this;
 	}
 
 	@Kroll.method
-	public void off(String eventName, KrollFunction callback)
+	public SocketClientProxy off(String eventName, KrollFunction callback)
 	{
-		WeakReference weakListenerReference = this.callbackListenerMap.get(callback);
-		Listener listener = (Listener)weakListenerReference.get();
+		Listener listener = this.findListener(eventName, callback);
 		if (listener != null) {
 			this.socket.off(eventName, listener);
+			this.removeEventHandler(eventName, callback);
 		}
+
+		return this;
 	}
 
 	@Kroll.method
-	public void emit(String eventName, Object... args)
+	public SocketClientProxy emit(String eventName, Object... args)
 	{
 		KrollFunction ackCallback = null;
 		ArrayList<Object> data = new ArrayList<>();
@@ -148,11 +177,13 @@ public class SocketIOClientProxy extends KrollProxy
 		} else {
 			this.socket.emit(eventName, data.toArray());
 		}
+
+		return this;
 	}
 
 	@Kroll.method
 	public void close() {
-		this.socket.close();
+		this.disconnect();
 	}
 
 	@Kroll.method
@@ -196,5 +227,40 @@ public class SocketIOClientProxy extends KrollProxy
 		}
 
 		return value;
+	}
+
+	private void storeEventHandler(String eventName, KrollFunction handler, Listener listener) {
+		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.getOrDefault(eventName, new HashSet<Pair<KrollFunction, Listener>>());
+		handlers.add(new Pair<KrollFunction, Listener>(handler, listener));
+		this.eventHandlers.put(eventName, handlers);
+	}
+
+	private void removeEventHandler(String eventName) {
+		this.eventHandlers.remove(eventName);
+	}
+
+	private void removeEventHandler(String eventName, KrollFunction handler) {
+		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.getOrDefault(eventName, new HashSet<Pair<KrollFunction, Listener>>());
+		for (Iterator<Pair<KrollFunction, Listener>> i = handlers.iterator(); i.hasNext();) {
+			Pair<KrollFunction, Listener> element = i.next();
+			if (element.first == handler) {
+					i.remove();
+			}
+		}
+	}
+
+	private void removeAllEventHandlers() {
+		this.eventHandlers.clear();
+	}
+
+	private Listener findListener(String eventName, KrollFunction callback) {
+		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.getOrDefault(eventName, new HashSet<Pair<KrollFunction, Listener>>());
+		for (Pair<KrollFunction, Listener> handlerPair : handlers) {
+			if (handlerPair.first == callback) {
+				return handlerPair.second;
+			}
+		}
+
+		return null;
 	}
 }
