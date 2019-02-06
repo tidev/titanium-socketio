@@ -38,7 +38,7 @@ Currently supported methods and properties are:
 
 ### IO
 
-- `io(url[, options])` (exposed as `connect`, note that `url` is not optional)
+- `io(url[, options])` (exposed as `connect`, note that `url` is not optional)
 - `socket.id`
 - `socket.connected`
 - `socket.disconnected`
@@ -68,7 +68,7 @@ Due to different architecture of the native frameworks and the web client there 
 
 ### Events on iOS
 
-The native clients don't have the concept of auto connect (which is the default for the web client). We emulate this by automatically connecting the socket for you if you don't explicitly specify `autoConnect: false` in the options.
+The native clients don't have the concept of auto connect (which is the default for the web client). We emulate this by automatically connecting the socket for you if you don't explicitly specify `autoConnect: false` in the options.
 
 However, this impacts emitting events on iOS where you need to explicity wait for a socket to be connected before you can start emitting events.
 
@@ -91,7 +91,7 @@ This is due to a limitation in the iOS native client which discards any events b
 
 #### Other event notes
 
-- `connect_error` is the same as `error`. You need to check the error message to see what kind of error happened.
+- `connect_error` is the same as `error`. You need to check the error message to see what kind of error happened.
 - `reconnect_attempt` does not report the number of reconnect attempts.
 - `pong` does not report the number ms elapsed since `ping`.
 
