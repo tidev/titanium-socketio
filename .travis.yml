@@ -29,6 +29,7 @@ matrix:
         - carthage update --platform ios --cache-builds
         - cp Carthage/Build/iOS/*.framework platform/
         - cd ..
+      script: npm run test:ios
 
     - name: Android
       language: android
@@ -42,6 +43,7 @@ matrix:
         - RELEASE_ZIP_FILE=${MODULE_ROOT}/${PLATFORM_NAME}/dist/${MODULE_NAME}-${PLATFORM_NAME}-${TRAVIS_TAG}.zip
       before_install:
         - echo y | sdkmanager "ndk-bundle"
+      script: npm run test:android
 
 before_install:
   - nvm install --lts
@@ -50,4 +52,3 @@ before_install:
 install:
   - ti sdk install ${TITANIUM_VERSION} -d --no-progress-bars
   - npm i
-script: npm test
