@@ -1,0 +1,53 @@
+env:
+  global:
+    - MODULE_NAME=ti.socketio
+    - TITANIUM_VERSION=7.5.0.GA
+    - MODULE_ROOT=$PWD
+
+cache:
+  directories:
+    - node_modules
+    - $HOME/android-sdk
+    - $HOME/Library/Caches/Homebrew
+    - $HOME/Library/Application\ Support/Titanium
+  timeout: 600
+
+matrix:
+  include:
+    - name: iOS
+      language: objective-c
+      osx_image: xcode10.1
+      env:
+        - PLATFORM_NAME=ios
+        - RELEASE_ZIP_FILE=${MODULE_ROOT}/${PLATFORM_NAME}/${MODULE_NAME}-iphone-${TRAVIS_TAG}.zip
+      cache:
+        directories:
+          - ${MODULE_ROOT}/ios/Carthage
+      before_script:
+        - cd ios
+        - sed -i ".bak" "s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=`ti sdk list -o json | node -e 'console.log(JSON.parse(require("fs").readFileSync("/dev/stdin")).activeSDK)'`/" titanium.xcconfig
+        - carthage update --platform ios --cache-builds
+        - cp Carthage/Build/iOS/*.framework platform/
+        - cd ..
+
+    - name: Android
+      language: android
+      jdk: oraclejdk8
+      android:
+        components:
+          - android-28
+          - build-tools-28.0.3
+      env:
+        - PLATFORM_NAME=android
+        - RELEASE_ZIP_FILE=${MODULE_ROOT}/${PLATFORM_NAME}/dist/${MODULE_NAME}-${PLATFORM_NAME}-${TRAVIS_TAG}.zip
+      before_install:
+        - echo y | sdkmanager "ndk-bundle"
+
+before_install:
+  - nvm install --lts
+  - nvm use --lts
+  - npm install -g titanium
+install:
+  - ti sdk install ${TITANIUM_VERSION} -d --no-progress-bars
+  - npm i
+script: npm test
