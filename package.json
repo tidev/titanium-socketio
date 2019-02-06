@@ -4,7 +4,9 @@
   "description": "Socket.io module for Titanium using native Android and iOS clients.",
   "private": true,
   "scripts": {
-    "test": "karma start test/unit/karma.unit.config.js"
+    "test": "karma start test/unit/karma.unit.config.js",
+    "test:android": "npm test -- --browsers android",
+    "test:ios": "npm test -- --browsers ios"
   },
   "repository": {
     "type": "git",
