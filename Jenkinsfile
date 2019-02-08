@@ -17,6 +17,9 @@ timestamps {
       ])
     }
   }
+  stage("Install") {
+    sh 'npm i'
+  }
   stage("Build & Test") {
     parallel([
       failFast: true,
