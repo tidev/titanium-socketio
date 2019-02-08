@@ -25,7 +25,7 @@ timestamps {
           // We have to hack to make sure we pick up correct ANDROID_SDK/NDK values from the node that's currently running this section of the build.
           def androidSDK = env.ANDROID_SDK // default to what's in env (may have come from jenkins env vars set on initial node)
           def androidNDK = env.ANDROID_NDK_R12B
-          withEnv(['ANDROID_SDK=', "${ndkName}="]) {
+          withEnv(['ANDROID_SDK=', "ANDROID_NDK_R12B="]) {
             try {
               androidSDK = sh(returnStdout: true, script: 'printenv ANDROID_SDK').trim()
             } catch (e) {
