@@ -10,14 +10,12 @@ def androidNDKLevel = 'r12b'
 timestamps {
   node {
     stage("Checkout") {
-      steps{
-        checkout([
-          $class: 'GitSCM',
-          branches: scm.branches,
-          extensions: scm.extensions + [[$class: 'CleanBeforeCheckout']],
-          userRemoteConfigs: scm.userRemoteConfigs
-        ])
-      }
+      checkout([
+        $class: 'GitSCM',
+        branches: scm.branches,
+        extensions: scm.extensions + [[$class: 'CleanBeforeCheckout']],
+        userRemoteConfigs: scm.userRemoteConfigs
+      ])
     }
   }
   stage("Build & Test") {
