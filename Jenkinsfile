@@ -1,7 +1,7 @@
 #! groovy
 library 'pipeline-library'
 
-def nodeVersion = '8.11.0'
+def nodeVersion = '8.9.1'
 def sdkVersion = '7.5.0.GA'
 def androidAPILevel = '25'
 def androidBuildToolsVersion = '25.0.03'
@@ -63,21 +63,21 @@ timestamps {
       iOS: node('osx && xcode') {
         nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
           dir('ios') {
-              sh 'sed -i \".bak\" \"s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=`ti sdk list -o json | node -e \'console.log(JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\")).activeSDK)\'`/\" titanium.xcconfig'
+            sh 'sed -i \".bak\" \"s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=`ti sdk list -o json | node -e \'console.log(JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\")).activeSDK)\'`/\" titanium.xcconfig'
 
-              sh 'rm -rf build/'
-              sh 'rm -rf *-iphone-*.zip'
-              sh 'rm -rf metadata.json'
+            sh 'rm -rf build/'
+            sh 'rm -rf *-iphone-*.zip'
+            sh 'rm -rf metadata.json'
 
-              sh 'carthage update --platform ios'
-              sh 'cp -R Carthage/Build/iOS/*.framework platform'
+            sh 'carthage update --platform ios'
+            sh 'cp -R Carthage/Build/iOS/*.framework platform'
 
-              sh 'npm run test:ios'
+            sh 'npm run test:ios'
 
-              dir('dist') {
-                archiveArtifacts '*.zip'
-              }
+            dir('dist') {
               archiveArtifacts '*.zip'
+            }
+            archiveArtifacts '*.zip'
           }
         }
       }
