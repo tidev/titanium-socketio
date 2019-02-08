@@ -4,7 +4,7 @@ library 'pipeline-library'
 def nodeVersion = '8.9.1'
 def sdkVersion = '7.5.0.GA'
 def androidAPILevel = '25'
-def androidBuildToolsVersion = '25.0.03'
+def androidBuildToolsVersion = '25.0.3'
 
 timestamps {
   node {
