@@ -16,9 +16,9 @@ timestamps {
         userRemoteConfigs: scm.userRemoteConfigs
       ])
     }
-  }
-  stage("Install") {
-    sh 'npm i'
+    stage("Install") {
+      sh 'npm i'
+    }
   }
   stage("Build & Test") {
     parallel([
