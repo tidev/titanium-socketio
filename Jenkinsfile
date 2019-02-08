@@ -27,46 +27,46 @@ timestamps {
       Android: node('android-sdk && android-ndk && osx') {
         nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
           def activeSDKPath = titaniumCLI.installAndSelectSDK(tiSDKVersion, tiSDKURL)
-					def ndkName = "ANDROID_NDK_${androidNDK.toUpperCase()}"
+          def ndkName = "ANDROID_NDK_${androidNDK.toUpperCase()}"
 
           // We have to hack to make sure we pick up correct ANDROID_SDK/NDK values from the node that's currently running this section of the build.
-					def androidSDK = env.ANDROID_SDK // default to what's in env (may have come from jenkins env vars set on initial node)
-					def androidNDK = env[ndkName]
-					withEnv(['ANDROID_SDK=', "${ndkName}="]) {
-						try {
-							androidSDK = sh(returnStdout: true, script: 'printenv ANDROID_SDK').trim()
-						} catch (e) {
-							// squash, env var not set at OS-level
-						}
-						try {
-							androidNDK = sh(returnStdout: true, script: "printenv ${ndkName}").trim()
-						} catch (e) {
-							// squash, env var not set at OS-level
-						}
+          def androidSDK = env.ANDROID_SDK // default to what's in env (may have come from jenkins env vars set on initial node)
+          def androidNDK = env[ndkName]
+          withEnv(['ANDROID_SDK=', "${ndkName}="]) {
+            try {
+              androidSDK = sh(returnStdout: true, script: 'printenv ANDROID_SDK').trim()
+            } catch (e) {
+              // squash, env var not set at OS-level
+            }
+            try {
+              androidNDK = sh(returnStdout: true, script: "printenv ${ndkName}").trim()
+            } catch (e) {
+              // squash, env var not set at OS-level
+            }
 
-						dir('android') {
-							writeFile file: 'build.properties', text: """
+            dir('android') {
+              writeFile file: 'build.properties', text: """
 titanium.platform=${activeSDKPath}/android
 android.platform=${androidSDK}/platforms/android-${androidAPILevel}
 google.apis=${androidSDK}/add-ons/addon-google_apis-google-${androidAPILevel}
 """
-							// FIXME We should have a module clean command!
-							// manually clean
-							sh 'rm -rf build/'
-							sh 'rm -rf dist/'
-							sh 'rm -rf libs/'
+              // FIXME We should have a module clean command!
+              // manually clean
+              sh 'rm -rf build/'
+              sh 'rm -rf dist/'
+              sh 'rm -rf libs/'
 
-							sh "ti config android.sdkPath ${androidSDK}"
-							sh "ti config android.ndkPath ${androidNDK}"
-							sh "ti config android.buildTools.selectedVersion ${androidBuildToolsVersion}"
+              sh "ti config android.sdkPath ${androidSDK}"
+              sh "ti config android.ndkPath ${androidNDK}"
+              sh "ti config android.buildTools.selectedVersion ${androidBuildToolsVersion}"
 
-							sh 'npm run test:android'
+              sh 'npm run test:android'
 
               dir('dist') {
-								archiveArtifacts '*.zip'
-							}
-						}
-					}
+                archiveArtifacts '*.zip'
+              }
+            }
+          }
         }
       },
       iOS: node('osx && xcode') {
