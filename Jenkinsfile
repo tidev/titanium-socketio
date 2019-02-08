@@ -5,7 +5,7 @@ def nodeVersion = '8.11.0'
 def sdkVersion = '7.5.0.GA'
 def androidAPILevel = '25'
 def androidBuildToolsVersion = '25.0.03'
-def androidNDK = 'r12b'
+def androidNDKLevel = 'r12b'
 
 timestamps {
   node {
@@ -25,7 +25,7 @@ timestamps {
       failFast: true,
       Android: node('android-sdk && android-ndk && osx') {
         nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
-          def ndkName = "ANDROID_NDK_${androidNDK.toUpperCase()}"
+          def ndkName = "ANDROID_NDK_${androidNDKLevel.toUpperCase()}"
 
           // We have to hack to make sure we pick up correct ANDROID_SDK/NDK values from the node that's currently running this section of the build.
           def androidSDK = env.ANDROID_SDK // default to what's in env (may have come from jenkins env vars set on initial node)
