@@ -66,7 +66,6 @@ timestamps {
       iOS: {
         node('osx && xcode') {
           unstash 'sources'
-          sh 'npm ci'
           nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
             ensureNPM(npmVersion)
             sh 'npm ci'
