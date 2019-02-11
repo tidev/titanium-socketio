@@ -18,12 +18,6 @@ timestamps {
       ])
       stash 'sources'
     }
-    stage("Install") {
-      nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
-        ensureNPM(npmVersion)
-        sh 'npm ci'
-      }
-    }
   }
   stage("Build & Test") {
     parallel([
@@ -31,6 +25,9 @@ timestamps {
         node('android-sdk && android-ndk && osx') {
           unstash 'sources'
           nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
+            ensureNPM(npmVersion)
+            sh 'npm ci'
+
             // We have to hack to make sure we pick up correct ANDROID_SDK/NDK values from the node that's currently running this section of the build.
             def androidSDK = env.ANDROID_SDK // default to what's in env (may have come from jenkins env vars set on initial node)
             def androidNDK = env.ANDROID_NDK_R12B
@@ -69,7 +66,11 @@ timestamps {
       iOS: {
         node('osx && xcode') {
           unstash 'sources'
+          sh 'npm ci'
           nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
+            ensureNPM(npmVersion)
+            sh 'npm ci'
+
             dir('ios') {
               sh 'sed -i \".bak\" \"s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=`ti sdk list -o json | node -e \'console.log(JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\")).activeSDK)\'`/\" titanium.xcconfig'
 
