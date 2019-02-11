@@ -71,7 +71,7 @@ timestamps {
             sh 'npm ci'
 
             dir('ios') {
-              sh 'sed -i \".bak\" \"s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=`ti sdk list -o json | node -e \'console.log(JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\")).activeSDK)\'`/\" titanium.xcconfig'
+              sh "sed -i \".bak\" \"s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=${sdkVersion}/\" titanium.xcconfig"
 
               sh 'rm -rf build/'
               sh 'rm -rf dist/'
