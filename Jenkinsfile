@@ -16,6 +16,7 @@ timestamps {
         extensions: scm.extensions + [[$class: 'CleanBeforeCheckout']],
         userRemoteConfigs: scm.userRemoteConfigs
       ])
+      stash 'sources'
     }
     stage("Install") {
       nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
@@ -28,6 +29,7 @@ timestamps {
     parallel([
       Android: {
         node('android-sdk && android-ndk && osx') {
+          unstash 'sources'
           nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
             // We have to hack to make sure we pick up correct ANDROID_SDK/NDK values from the node that's currently running this section of the build.
             def androidSDK = env.ANDROID_SDK // default to what's in env (may have come from jenkins env vars set on initial node)
@@ -61,10 +63,12 @@ timestamps {
               }
             }
           }
+          deleteDir()
         }
       },
       iOS: {
         node('osx && xcode') {
+          unstash 'sources'
           nodejs(nodeJSInstallationName: "node ${nodeVersion}") {
             dir('ios') {
               sh 'sed -i \".bak\" \"s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=`ti sdk list -o json | node -e \'console.log(JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\")).activeSDK)\'`/\" titanium.xcconfig'
@@ -87,6 +91,7 @@ timestamps {
               archiveArtifacts '*.zip'
             }
           }
+          deleteDir()
         }
       }
     ])
