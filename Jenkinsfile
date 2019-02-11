@@ -45,18 +45,16 @@ timestamps {
               }
 
               dir('android') {
-                // FIXME We should have a module clean command!
-                // manually clean
-                sh 'rm -rf build/'
-                sh 'rm -rf dist/'
-                sh 'rm -rf libs/'
+                sh 'rm -rf build/ dist/ libs/'
+              }
 
-                sh "ti config android.sdkPath ${androidSDK}"
-                sh "ti config android.ndkPath ${androidNDK}"
-                sh "ti config android.buildTools.selectedVersion ${androidBuildToolsVersion}"
+              sh "ti config android.sdkPath ${androidSDK}"
+              sh "ti config android.ndkPath ${androidNDK}"
+              sh "ti config android.buildTools.selectedVersion ${androidBuildToolsVersion}"
 
-                sh 'npm run test:android'
+              sh 'npm run test:android'
 
+              dir('android') {
                 dir('dist') {
                   archiveArtifacts '*.zip'
                 }
@@ -72,14 +70,17 @@ timestamps {
               sh 'sed -i \".bak\" \"s/^TITANIUM_SDK_VERSION.*/TITANIUM_SDK_VERSION=`ti sdk list -o json | node -e \'console.log(JSON.parse(require(\"fs\").readFileSync(\"/dev/stdin\")).activeSDK)\'`/\" titanium.xcconfig'
 
               sh 'rm -rf build/'
+              sh 'rm -rf dist/'
               sh 'rm -rf *-iphone-*.zip'
               sh 'rm -rf metadata.json'
 
               sh 'carthage update --platform ios'
               sh 'cp -R Carthage/Build/iOS/*.framework platform'
+            }
 
-              sh 'npm run test:ios'
+            sh 'npm run test:ios'
 
+            dir('ios') {
               dir('dist') {
                 archiveArtifacts '*.zip'
               }
