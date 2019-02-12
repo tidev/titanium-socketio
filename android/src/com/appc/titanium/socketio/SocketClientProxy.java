@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import com.sun.java_cup.internal.runtime.virtual_parse_stack;
-
 import io.socket.client.Ack;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter.Listener;
@@ -230,7 +228,10 @@ public class SocketClientProxy extends KrollProxy
 	}
 
 	private void storeEventHandler(String eventName, KrollFunction handler, Listener listener) {
-		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.getOrDefault(eventName, new HashSet<Pair<KrollFunction, Listener>>());
+		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.get(eventName);
+		if (handlers == null) {
+			handlers = new HashSet<Pair<KrollFunction, Listener>>();
+		}
 		handlers.add(new Pair<KrollFunction, Listener>(handler, listener));
 		this.eventHandlers.put(eventName, handlers);
 	}
@@ -240,7 +241,10 @@ public class SocketClientProxy extends KrollProxy
 	}
 
 	private void removeEventHandler(String eventName, KrollFunction handler) {
-		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.getOrDefault(eventName, new HashSet<Pair<KrollFunction, Listener>>());
+		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.get(eventName);
+		if (handlers == null) {
+			handlers = new HashSet<Pair<KrollFunction, Listener>>();
+		}
 		for (Iterator<Pair<KrollFunction, Listener>> i = handlers.iterator(); i.hasNext();) {
 			Pair<KrollFunction, Listener> element = i.next();
 			if (element.first == handler) {
@@ -254,7 +258,10 @@ public class SocketClientProxy extends KrollProxy
 	}
 
 	private Listener findListener(String eventName, KrollFunction callback) {
-		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.getOrDefault(eventName, new HashSet<Pair<KrollFunction, Listener>>());
+		HashSet<Pair<KrollFunction, Listener>> handlers = this.eventHandlers.get(eventName);
+		if (handlers == null) {
+			handlers = new HashSet<Pair<KrollFunction, Listener>>();
+		}
 		for (Pair<KrollFunction, Listener> handlerPair : handlers) {
 			if (handlerPair.first == callback) {
 				return handlerPair.second;
