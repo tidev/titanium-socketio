@@ -85,9 +85,10 @@ timestamps {
             sh 'npm run test:ios'
 
             dir('ios') {
-              dir('dist') {
-                archiveArtifacts '*.zip'
-              }
+              // 7.5.0.GA creates an empty dist dir
+              //dir('dist') {
+              //  archiveArtifacts '*.zip'
+              //}
               archiveArtifacts '*.zip'
             }
           }
