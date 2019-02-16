@@ -7,8 +7,6 @@ import org.appcelerator.kroll.common.TiConfig;
 
 import io.socket.client.Manager;
 import io.socket.client.Socket;
-import io.socket.client.IO.Options;
-
 
 @Kroll.proxy(creatableInModule=TiSocketioModule.class)
 public class SocketManagerProxy extends KrollProxy

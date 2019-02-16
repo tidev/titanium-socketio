@@ -21,6 +21,7 @@ import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -92,6 +93,9 @@ public class TiSocketioModule extends KrollModule
 
 			jsOptions.remove("autoConnect");
 			jsOptions.remove("parser");
+			jsOptions.remove("decoder");
+			jsOptions.remove("encoder");
+			jsOptions.remove("transportOptions");
 
 			socketOptions = this.createSocketOptions(jsOptions);
 
@@ -108,6 +112,9 @@ public class TiSocketioModule extends KrollModule
 
 					if (optionName.equals("query") && optionValue instanceof HashMap) {
 							optionValue = this.buildQueryString((HashMap<?, ?>)optionValue);
+					}
+					if (optionName.equals("transports") && optionValue.getClass().isArray()) {
+						optionValue = Arrays.copyOf((Object[])optionValue, ((Object[])optionValue).length, String[].class);
 					}
 
 					try {
