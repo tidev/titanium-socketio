@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 
 - Properly store event handlers to prevent GC related crashes when accessing them.
-
+- Fixed missing internal conversion of `transports` option so it will no longer be ignored.
 
 ## [1.0.2] - 2018-10-28
 
