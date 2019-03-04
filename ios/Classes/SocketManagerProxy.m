@@ -31,7 +31,6 @@
   self.timeout = [TiUtils doubleValue:@"timeout" properties:options def:20000.f];
 
   NSDictionary *nativeOptions = [self convertOptions:options];
-  NSLog(@"lookup manager with options %@", nativeOptions);
   self.manager = [[SocketManager alloc] initWithSocketURL:url config:nativeOptions];
 
   return self;
