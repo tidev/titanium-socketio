@@ -23,7 +23,7 @@ function init (logger, config, cli, appc) {
 		pre: function (builder, done) {
 			logger.info('Running carthage...');
 
-			const p = spawn('carthage', [ 'update', '--platform', 'ios' ], { cwd: builder.projectDir });
+			const p = spawn('carthage', [ 'bootstrap', '--platform', 'ios' ], { cwd: builder.projectDir });
 			p.stderr.on('data', data => logger.error(data.toString().trim()));
 			p.stdout.on('data', data => logger.trace(data.toString().trim()));
 			p.on('close', function (code) {
