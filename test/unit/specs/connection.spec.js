@@ -214,20 +214,16 @@ describe('connection', () => {
       });
       socket.disconnect();
       socket.connect();
-    });
+		});
 	});
 
-	it('should fire reconnect_* events on socket', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
-
+	xit('should fire reconnect_* events on socket', done => {
     const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
     const socket = manager.socket('/timeout_socket');
 
     let reconnects = 0;
     const reconnectCb = function (attempts) {
-      reconnects++;
+			reconnects++;
       expect(attempts).toBe(reconnects);
     };
 
@@ -237,14 +233,10 @@ describe('connection', () => {
       socket.close();
       manager.close();
       done();
-    });
+		});
   });
 
-  it('should fire reconnecting (on socket) with attempts number when reconnecting twice', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
-
+  xit('should fire reconnecting (on socket) with attempts number when reconnecting twice', done => {
     const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
     const socket = manager.socket('/timeout_socket');
 
@@ -260,7 +252,7 @@ describe('connection', () => {
       socket.close();
       manager.close();
       done();
-    });
+		});
   });
 
   it('should connect while disconnecting another socket', done => {

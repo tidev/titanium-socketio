@@ -8,6 +8,7 @@
  */
 package com.appc.titanium.socketio;
 
+import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -32,6 +33,9 @@ import io.socket.client.IO.Options;
 import io.socket.client.Manager;
 import io.socket.client.Socket;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 @Kroll.module(name = "TiSocketio", id = "ti.socketio")
 public class TiSocketioModule extends KrollModule
 {
@@ -45,20 +49,20 @@ public class TiSocketioModule extends KrollModule
 	{
 		super();
 
+		Logger.getLogger(Manager.class.getName()).setLevel(Level.FINE);
+		Logger.getLogger(Socket.class.getName()).setLevel(Level.FINE);
+
 		this.managerCache = new HashMap<Manager, SocketManagerProxy>();
 	}
 
 	// JS Methods
 
 	@Kroll.method
-	public SocketClientProxy connect(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
+	public SocketClientProxy _nativeConnect(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
 	{
 		boolean autoConnect = jsOptions != null ? TiConvert.toBoolean(jsOptions, "autoConnect", true) : true;
 		Options options = this.convertOptions(jsOptions);
 		Socket socket = IO.socket(uri, options);
-		if (autoConnect) {
-			socket.connect();
-		}
 		SocketManagerProxy managerProxy;
 		if (this.managerCache.containsKey(socket.io())) {
 			managerProxy = this.managerCache.get(socket.io());
@@ -67,12 +71,15 @@ public class TiSocketioModule extends KrollModule
 			this.managerCache.put(socket.io(), managerProxy);
 		}
 		SocketClientProxy socketProxy = new SocketClientProxy(socket, managerProxy);
+		if (autoConnect) {
+			socket.connect();
+		}
 
 		return socketProxy;
 	}
 
 	@Kroll.method
-	public SocketManagerProxy Manager(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
+	public SocketManagerProxy _nativeManager(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
 	{
 		Options options = this.convertOptions(jsOptions);
 		Manager manager = new Manager(new URI(uri), options);
