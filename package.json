@@ -17,18 +17,14 @@
   },
   "homepage": "https://github.com/appcelerator-modules/titanium-socketio#readme",
   "devDependencies": {
-    "eslint": "^5.10.0",
+    "eslint": "^5.16.0",
     "eslint-config-axway": "^4.1.1",
     "eslint-plugin-jasmine": "^2.10.1",
     "jasmine-core": "^3.3.0",
-    "karma": "^4.0.0",
+    "karma": "^4.1.0",
     "karma-jasmine": "^2.0.1",
-    "karma-mocha": "^1.3.0",
     "karma-mocha-reporter": "^2.2.5",
-    "karma-titanium-launcher": "^0.5.1",
-    "karma-webpack": "^4.0.0-rc.6",
-    "mocha": "^5.2.0",
-    "socket.io": "^2.2.0",
-    "webpack": "^4.29.0"
+    "karma-titanium-launcher": "^0.6.0",
+    "socket.io": "^2.2.0"
   }
 }
