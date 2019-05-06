@@ -134,6 +134,7 @@ describe('socket', () => {
 		const socket = io.connect(url + '/no', { forceNew: true });
 		socket.on('error', err => {
 			expect(err).toBe('Auth failed (custom namespace)');
+			socket.off();
 			socket.disconnect();
 			done();
 		});
