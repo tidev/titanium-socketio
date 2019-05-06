@@ -1,5 +1,6 @@
 /**
- * Ti.SwiftSupport
+ * Carthage build hook
+ *
  * Copyright (c) 2019-present by Axway Appcelerator
  * All Rights Reserved.
  */
@@ -7,7 +8,6 @@
 'use strict';
 
 const spawn = require('child_process').spawn;
-const fs = require('fs-extra');
 const path = require('path');
 
 exports.id = 'ti.socketio.carthage';
@@ -23,7 +23,7 @@ function init (logger, config, cli, appc) {
 		pre: function (builder, done) {
 			logger.info('Running carthage...');
 
-			const p = spawn('carthage', [ 'bootstrap', '--platform', 'ios' ], { cwd: builder.projectDir });
+			const p = spawn('carthage', [ 'bootstrap', '--platform', 'ios', '--cache-builds' ], { cwd: builder.projectDir });
 			p.stderr.on('data', data => logger.error(data.toString().trim()));
 			p.stdout.on('data', data => logger.trace(data.toString().trim()));
 			p.on('close', function (code) {
@@ -31,6 +31,7 @@ function init (logger, config, cli, appc) {
 					return done(new Error(`Failed to run carthage properly, exited with code: ${code}`));
 				}
 
+				const fs = require('fs-extra');
 				const subdirs = fs.readdirSync(path.join(builder.projectDir, 'Carthage/Build/iOS'));
 				const frameworkDirs = subdirs.filter(dir => dir.endsWith('.framework'));
 				for (const frameworkDir of frameworkDirs) {
@@ -38,7 +39,6 @@ function init (logger, config, cli, appc) {
 				}
 				done();
 			});
-			
 		}
 	});
 }
