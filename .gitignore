@@ -1,53 +1,15 @@
-# Build and temp dirs
-tmp
-bin
-build
-*/**/modules
-*/**/modules*
-libs/
-*.zip
+# Logs
+logs
+*.log
+npm-debug.log*
 
-# IDE and other tools
-.apt_generated
-build.properties
-.svn
-*.pyc
-*~.nib/
-*.pbxuser
-*.perspective
-*.perspectivev3
-*.xcworkspace/
-xcuserdata
-*.xcuserstate
-*.xcuserdata*
-.idea/
-*.iml
-
-# Android intermediate files and folders
-android/clean
-android/ant_clean
-android/.classpath
-android/.settings
-android/dist/
-android/launch-*
-android/java-sources.txt
-nbproject
-
-# iOS intermediate files and folders
-/ios/metadata.json
-/ios/dist
-Carthage
-
-# System dot-files
-.DS_Store
-
-# Ignore .frameworks in platform folder
-platform/*.framework
-/ios/platform/SocketIO.framework
-/ios/platform/Starscream.framework
-
-# Dependency direcotires
+# Dependency directories
 node_modules/
 
-# Test reports
+# Build output dir
+dist/
+
+# Test data
+coverage
+.coveralls.yml
 TESTS-*.xml

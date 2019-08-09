@@ -1,19 +1,26 @@
 'use strict';
 
+const baseConfig = require('../../webpack.config.base');
+
 module.exports = config => {
 	config.set({
-		basePath: '../..',
-		frameworks: [ 'jasmine', 'socket.io-server' ],
+		frameworks: [ 'mocha', 'chai', 'socket.io-server' ],
 		files: [
-			'test/unit/specs/**/*spec.js'
+			{ pattern: 'specs/**/*.spec.js', watch: false }
 		],
+		preprocessors: {
+			'specs/**/*.spec.js': [ 'webpack' ]
+		},
 		reporters: [ 'mocha', 'junit' ],
 		plugins: [
 			'karma-*',
 			require('./support/socket.io-server')
 		],
+		webpack: Object.assign({}, baseConfig, {
+			mode: 'development'
+		}),
 		titanium: {
-			sdkVersion: '8.0.0.GA'
+			sdkVersion: '8.0.2.GA'
 		},
 		customLaunchers: {
 			android: {
@@ -30,11 +37,6 @@ module.exports = config => {
 			}
 		},
 		browsers: [ 'android', 'ios' ],
-		client: {
-			jasmine: {
-				random: false
-			}
-		},
 		singleRun: true,
 		retryLimit: 0,
 		concurrency: 1,

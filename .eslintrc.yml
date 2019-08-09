@@ -1,7 +1,16 @@
 extends:
   - axway/env-node
-  - axway/titanium
+  - axway/env-titanium
 plugins:
-  - jasmine
+  - mocha
 env:
-  jasmine: true
+  mocha: true
+globals:
+  expect: readonly
+parserOptions:
+  ecmaVersion: 2019
+rules:
+  node/no-unsupported-features/es-syntax:
+    - error
+    - ignores:
+      - modules

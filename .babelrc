@@ -1,0 +1,19 @@
+{
+  "presets": [
+    ["@babel/env", {
+      "targets": {
+        "chrome": "70",
+        "ios": "9.0"
+      },
+      "modules": "commonjs",
+    }]
+  ],
+  "plugins": [
+    [
+      "add-module-exports",
+      {
+        "addDefaultProperty": true
+      }
+    ]
+  ]
+}

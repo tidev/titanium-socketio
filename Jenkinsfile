@@ -1,6 +1,5 @@
-#! groovy
 library 'pipeline-library'
 
-buildModule {
-	sdkVersion = '8.0.0.GA'
+buildNPMPackage {
+	labels = 'osx && git && npm-publish && android-sdk && android-ndk'
 }

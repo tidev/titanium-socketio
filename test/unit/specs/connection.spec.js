@@ -1,110 +1,77 @@
-const io = require('ti.socketio');
-const host = Ti.Platform.osname === 'android' ? '10.0.2.2' : 'localhost';
-const port = '3210';
-const url = `http://${host}:${port}`;
+import io from '../../../src/index';
+import hasCORS from 'has-cors';
+// var textBlobBuilder = require('text-blob-builder');
+import * as env from '../support/env';
 
-describe('connection', () => {
-	// this test needs to come first so no other existing managers interfere
-	it('should use single connection when connecting different namespaces', () => {
-		const s1 = io.connect(url);
-		const s2 = io.connect(url + '/foo');
+describe('connection', function () {
+	this.timeout(7000);
 
-		expect(s1.io).toBe(s2.io);
-		s1.disconnect();
-		s2.disconnect();
-	});
-
-	it('should emit connect event on successful connect', done => {
-		const socket = io.connect(url, { forceNew: true, autoConnect: false });
-		socket.on('connect', () => {
-			socket.disconnect();
-			done();
-		});
-		socket.connect();
-	});
-
-	it('should emit and receive simple events', done => {
-		const socket = io.connect(url, { forceNew: true });
-		socket.on('hi', () => {
-			socket.disconnect();
-			done();
-		});
-		socket.on('connect', () => {
-			socket.emit('hi');
-		});
-	});
-
-	it('should emit error if host not reachable', done => {
-		const socket = io.connect('http://localhost:8080/', { forceNew: true });
-		socket.on('connect_error', () => {
+	it('should connect to localhost', function (done) {
+		var socket = io({ forceNew: true });
+		socket.emit('hi');
+		socket.on('hi', function (data) {
 			socket.disconnect();
 			done();
 		});
 	});
 
-	it('should not connect when autoConnect option set to false', () => {
-		const socket = io.connect(url, { autoConnect: false, forceNew: true });
-		expect(socket.connected).toBeFalsy();
+	it('should not connect when autoConnect option set to false', function () {
+		var socket = io({ forceNew: true, autoConnect: false });
+		expect(socket.io.engine).to.not.be.an('object');
 		socket.disconnect();
 	});
 
-	it('should start two connections with same path', () => {
-		const s1 = io.connect(url);
-		const s2 = io.connect(url);
+	it('should start two connections with same path', function () {
+		var s1 = io('/');
+		var s2 = io('/');
 
-		expect(s1.io).not.toBe(s2.io);
+		expect(s1.io).to.not.equal(s2.io);
 		s1.disconnect();
 		s2.disconnect();
 	});
 
-	it('should start two connections with same path and different querystrings', () => {
-		const s1 = io.connect(url + '/?woot');
-		const s2 = io.connect(url + '/');
+	it('should start two connections with same path and different querystrings', function () {
+		var s1 = io('/?woot');
+		var s2 = io('/');
 
-		expect(s1.io).not.toBe(s2.io);
+		expect(s1.io).to.not.equal(s2.io);
 		s1.disconnect();
 		s2.disconnect();
 	});
 
-	xit('should work with acks', done => {
-		const socket = io.connect(url, { forceNew: true });
+	it('should work with acks', function (done) {
+		var socket = io({ forceNew: true });
+		socket.emit('ack');
 		socket.on('ack', function (fn) {
 			fn(5, { test: true });
 		});
-		socket.on('got it', () => {
+		socket.on('got it', function () {
 			socket.disconnect();
 			done();
 		});
-		socket.on('connect', () => {
-			socket.emit('ack');
-		});
 	});
 
-	xit('should receive date with ack', done => {
-		const socket = io.connect(url, { forceNew: true });
-		socket.on('connect', () => {
-			socket.emit('getAckDate', { test: true }, function (data) {
-				expect(data).toBe(jasmine.any(String));
-				socket.disconnect();
-				done();
-			});
-		});
-	});
-
-	it('should work with false', done => {
-		const socket = io.connect(url, { forceNew: true });
-		socket.on('false', f => {
-			expect(f).toBe(false);
+	it('should receive date with ack', function (done) {
+		var socket = io({ forceNew: true });
+		socket.emit('getAckDate', { test: true }, function (data) {
+			expect(data).to.be.a('string');
 			socket.disconnect();
 			done();
 		});
-		socket.on('connect', () => {
-			socket.emit('false');
+	});
+
+	it('should work with false', function (done) {
+		var socket = io({ forceNew: true });
+		socket.emit('false');
+		socket.on('false', function (f) {
+			expect(f).to.be.a('boolean').and.to.equal(false);
+			socket.disconnect();
+			done();
 		});
 	});
 
-	it('should receive utf8 multibyte characters', done => {
-		const correct = [
+	it('should receive utf8 multibyte characters', function (done) {
+		var correct = [
 			'てすと',
 			'Я Б Г Д Ж Й',
 			'Ä ä Ü ü ß',
@@ -112,27 +79,25 @@ describe('connection', () => {
 			'utf8 — string'
 		];
 
-		const socket = io.connect(url, { forceNew: true });
-		let i = 0;
-		socket.on('takeUtf8', data => {
-			expect(data).toBe(correct[i]);
+		var socket = io({ forceNew: true });
+		var i = 0;
+		socket.on('takeUtf8', function (data) {
+			expect(data).to.equal(correct[i]);
 			i++;
 			if (i === correct.length) {
 				socket.disconnect();
 				done();
 			}
 		});
-		socket.on('connect', () => {
-			socket.emit('getUtf8');
-		});
+		socket.emit('getUtf8');
 	});
 
-	it('should connect to a namespace after connection established', done => {
-		const manager = io.Manager(url);
-		const socket = manager.socket('/');
-		socket.on('connect', () => {
-			const foo = manager.socket('/foo');
-			foo.on('connect', () => {
+	it('should connect to a namespace after connection established', function (done) {
+		var manager = io.Manager();
+		var socket = manager.socket('/');
+		socket.on('connect', function () {
+			var foo = manager.socket('/foo');
+			foo.on('connect', function () {
 				foo.close();
 				socket.close();
 				manager.close();
@@ -141,14 +106,14 @@ describe('connection', () => {
 		});
 	});
 
-	it('should open a new namespace after connection gets closed', done => {
-		const manager = io.Manager(url);
-		const socket = manager.socket('/');
-		socket.on('connect', () => {
+	it('should open a new namespace after connection gets closed', function (done) {
+		var manager = io.Manager();
+		var socket = manager.socket('/');
+		socket.on('connect', function () {
 			socket.disconnect();
-		}).on('disconnect', () => {
-			const foo = manager.socket('/foo');
-			foo.on('connect', () => {
+		}).on('disconnect', function () {
+			var foo = manager.socket('/foo');
+			foo.on('connect', function () {
 				foo.disconnect();
 				manager.close();
 				done();
@@ -156,12 +121,24 @@ describe('connection', () => {
 		});
 	});
 
-	it('should reconnect manually', done => {
-		const socket = io.connect(url, { forceNew: true });
-		socket.once('connect', () => {
+	it('should reconnect by default', function (done) {
+		var socket = io({ forceNew: true });
+		socket.io.on('reconnect', function () {
 			socket.disconnect();
-		}).once('disconnect', () => {
-			socket.once('connect', () => {
+			done();
+		});
+
+		setTimeout(function () {
+			socket.io.engine.close();
+		}, 500);
+	});
+
+	it('should reconnect manually', function (done) {
+		var socket = io({ forceNew: true });
+		socket.once('connect', function () {
+			socket.disconnect();
+		}).once('disconnect', function () {
+			socket.once('connect', function () {
 				socket.disconnect();
 				done();
 			});
@@ -169,132 +146,409 @@ describe('connection', () => {
 		});
 	});
 
-	it('should not reconnect when force closed', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
-
-		const socket = io.connect(url + '/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
-		socket.on('connect_error', () => {
-			socket.on('reconnect_attempt', () =>  {
-				fail();
-			});
+	it('should reconnect automatically after reconnecting manually', function (done) {
+		var socket = io({ forceNew: true });
+		socket.once('connect', function () {
 			socket.disconnect();
-			// set a timeout to let reconnection possibly fire
-			setTimeout(done, 500);
+		}).once('disconnect', function () {
+			socket.on('reconnect', function () {
+				socket.disconnect();
+				done();
+			});
+			socket.connect();
+			setTimeout(function () {
+				socket.io.engine.close();
+			}, 500);
 		});
 	});
 
-	it('should stop reconnecting when force closed', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
+	it('should attempt reconnects after a failed reconnect', function (done) {
+		var manager = io.Manager({ reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
+		var socket = manager.socket('/timeout');
+		socket.once('reconnect_failed', function () {
+			var reconnects = 0;
+			function reconnectCb() {
+				reconnects++;
+			}
 
-		const socket = io.connect(url + '/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
-		socket.once('reconnect_attempt', () => {
-			socket.on('reconnect_attempt', () => {
-				fail();
+			manager.on('reconnect_attempt', reconnectCb);
+			manager.on('reconnect_failed', function failed () {
+				expect(reconnects).to.equal(2);
+				socket.close();
+				manager.close();
+				done();
 			});
-			socket.disconnect();
-			// set a timeout to let reconnection possibly fire
+			socket.connect();
+		});
+	});
+
+	it('reconnect delay should increase every time', function (done) {
+		var manager = io.Manager({ reconnection: true, timeout: 0, reconnectionAttempts: 3, reconnectionDelay: 100, randomizationFactor: 0.2 });
+		var socket = manager.socket('/timeout');
+		var reconnects = 0;
+		var increasingDelay = true;
+		var startTime;
+		var prevDelay = 0;
+
+		socket.on('connect_error', function () {
+			startTime = new Date().getTime();
+		});
+		socket.on('reconnect_attempt', function () {
+			reconnects++;
+			var currentTime = new Date().getTime();
+			var delay = currentTime - startTime;
+			if (delay <= prevDelay) {
+				increasingDelay = false;
+			}
+			prevDelay = delay;
+		});
+
+		socket.on('reconnect_failed', function failed () {
+			expect(reconnects).to.equal(3);
+			expect(increasingDelay).to.be.equal(true);
+			socket.close();
+			manager.close();
 			done();
 		});
 	});
 
-	it('should reconnect after stopping reconnection', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
+	it('reconnect event should fire in socket', function (done) {
+		var socket = io({ forceNew: true });
+
+		socket.on('reconnect', function () {
+			socket.disconnect();
+			done();
+		});
+
+		setTimeout(function () {
+			socket.io.engine.close();
+		}, 500);
+	});
+
+	it('should not reconnect when force closed', function (done) {
+		var socket = io('/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
+		socket.on('connect_error', function () {
+			socket.on('reconnect_attempt', function () {
+				expect().fail();
+			});
+			socket.disconnect();
+			// set a timeout to let reconnection possibly fire
+			setTimeout(function () {
+				done();
+			}, 500);
+		});
+	});
+
+	it('should stop reconnecting when force closed', function (done) {
+		var socket = io('/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
+		socket.once('reconnect_attempt', function () {
+			socket.on('reconnect_attempt', function () {
+				expect().fail();
+			});
+			socket.disconnect();
+			// set a timeout to let reconnection possibly fire
+			setTimeout(function () {
+				done();
+			}, 500);
+		});
+	});
+
+	it('should reconnect after stopping reconnection', function (done) {
+		var socket = io('/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
+		socket.once('reconnect_attempt', function () {
+			socket.on('reconnect_attempt', function () {
+				socket.disconnect();
+				done();
+			});
+			socket.disconnect();
+			socket.connect();
+		});
+	});
+
+	it('should stop reconnecting on a socket and keep to reconnect on another', function (done) {
+		var manager = io.Manager();
+		var socket1 = manager.socket('/');
+		var socket2 = manager.socket('/asd');
+
+		manager.on('reconnect_attempt', function () {
+			socket1.on('connect', function () {
+				expect().fail();
+			});
+			socket2.on('connect', function () {
+				setTimeout(function () {
+					socket2.disconnect();
+					manager.disconnect();
+					done();
+				}, 500);
+			});
+			socket1.disconnect();
+		});
+
+		setTimeout(function () {
+			manager.engine.close();
+		}, 1000);
+	});
+
+	it('should try to reconnect twice and fail when requested two attempts with immediate timeout and reconnect enabled', function (done) {
+		var manager = io.Manager({ reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
+		var socket;
+
+		var reconnects = 0;
+		function reconnectCb() {
+			reconnects++;
 		}
 
-    const socket = io.connect(url + '/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
-    socket.once('reconnect_attempt', () => {
-      socket.on('reconnect_attempt', () => {
+		manager.on('reconnect_attempt', reconnectCb);
+		manager.on('reconnect_failed', function failed () {
+			expect(reconnects).to.equal(2);
+			socket.close();
+			manager.close();
+			done();
+		});
+
+		socket = manager.socket('/timeout');
+	});
+
+	it('should fire reconnect_* events on socket', function (done) {
+		var manager = io.Manager({ reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
+		var socket = manager.socket('/timeout_socket');
+
+		var reconnects = 0;
+		function reconnectCb(attempts) {
+			reconnects++;
+			expect(attempts).to.equal(reconnects);
+		}
+
+		socket.on('reconnect_attempt', reconnectCb);
+		socket.on('reconnect_failed', function failed () {
+			expect(reconnects).to.equal(2);
+			socket.close();
+			manager.close();
+			done();
+		});
+	});
+
+	it('should fire error on socket', function (done) {
+		var manager = io.Manager({ reconnection: true });
+		var socket = manager.socket('/timeout_socket');
+
+		socket.on('error', function (data) {
+			expect(data.code).to.equal('test');
+			socket.close();
+			manager.close();
+			done();
+		});
+
+		socket.on('connect', function () {
+			manager.engine.onPacket({ type: 'error', data: 'test' });
+		});
+	});
+
+	it('should fire reconnecting (on socket) with attempts number when reconnecting twice', function (done) {
+		var manager = io.Manager({ reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
+		var socket = manager.socket('/timeout_socket');
+
+		var reconnects = 0;
+		function reconnectCb(attempts) {
+			reconnects++;
+			expect(attempts).to.equal(reconnects);
+		}
+
+		socket.on('reconnecting', reconnectCb);
+		socket.on('reconnect_failed', function failed () {
+			expect(reconnects).to.equal(2);
+			socket.close();
+			manager.close();
+			done();
+		});
+	});
+
+	it('should not try to reconnect and should form a connection when connecting to correct port with default timeout', function (done) {
+		var manager = io.Manager({ reconnection: true, reconnectionDelay: 10 });
+		function cb() {
+			socket.close();
+			expect().fail();
+		}
+		manager.on('reconnect_attempt', cb);
+
+		var socket = manager.socket('/valid');
+		socket.on('connect', function () {
+			// set a timeout to let reconnection possibly fire
+			setTimeout(function () {
+				socket.close();
+				manager.close();
+				done();
+			}, 1000);
+		});
+	});
+
+	it('should connect while disconnecting another socket', function (done) {
+		var manager = io.Manager();
+		var socket1 = manager.socket('/foo');
+		socket1.on('connect', function () {
+			var socket2 = manager.socket('/asd');
+			socket2.on('connect', done);
+			socket1.disconnect();
+		});
+	});
+
+	// Ignore incorrect connection test for old IE due to no support for
+	// `script.onerror` (see: http://requirejs.org/docs/api.html#ieloadfail)
+	if (!global.document || hasCORS) {
+		it('should try to reconnect twice and fail when requested two attempts with incorrect address and reconnect enabled', function (done) {
+			var manager = io.Manager('http://localhost:3940', { reconnection: true, reconnectionAttempts: 2, reconnectionDelay: 10 });
+			var socket = manager.socket('/asd');
+			var reconnects = 0;
+			function cb() {
+				reconnects++;
+			}
+
+			manager.on('reconnect_attempt', cb);
+
+			manager.on('reconnect_failed', function () {
+				expect(reconnects).to.equal(2);
+				socket.disconnect();
+				manager.close();
+				done();
+			});
+		});
+
+		it('should not try to reconnect with incorrect port when reconnection disabled', function (done) {
+			var manager = io.Manager('http://localhost:9823', { reconnection: false });
+			function cb() {
+				socket.close();
+				expect().fail();
+			}
+			manager.on('reconnect_attempt', cb);
+
+			manager.on('connect_error', function () {
+				// set a timeout to let reconnection possibly fire
+				setTimeout(function () {
+					socket.disconnect();
+					manager.close();
+					done();
+				}, 1000);
+			});
+
+			var socket = manager.socket('/invalid');
+		});
+	}
+
+	it('should emit date as string', function (done) {
+		var socket = io({ forceNew: true });
+		socket.on('takeDate', function (data) {
+			socket.close();
+			expect(data).to.be.a('string');
+			done();
+		});
+		socket.emit('getDate');
+	});
+
+	it('should emit date in object', function (done) {
+		var socket = io({ forceNew: true });
+		socket.on('takeDateObj', function (data) {
+			socket.close();
+			expect(data).to.be.an('object');
+			expect(data.date).to.be.a('string');
+			done();
+		});
+		socket.emit('getDateObj');
+	});
+
+	if (!global.Blob && !global.ArrayBuffer) {
+		it('should get base64 data as a last resort', function (done) {
+			var socket = io({ forceNew: true });
+			socket.on('takebin', function (a) {
+				socket.disconnect();
+				expect(a.base64).to.equal(true);
+				expect(a.data).to.eql('YXNkZmFzZGY=');
+				done();
+			});
+			socket.emit('getbin');
+		});
+	}
+
+	if (global.ArrayBuffer) {
+		var base64 = require('base64-arraybuffer');
+
+		it('should get binary data (as an ArrayBuffer)', function (done) {
+			var socket = io({ forceNew: true });
+			if (env.node) {
+				socket.io.engine.binaryType = 'arraybuffer';
+			}
+			socket.emit('doge');
+			socket.on('doge', function (buffer) {
+				expect(buffer instanceof ArrayBuffer).to.equal(true);
+				socket.disconnect();
+				done();
+			});
+		});
+
+		it('should send binary data (as an ArrayBuffer)', function (done) {
+			var socket = io({ forceNew: true });
+			socket.on('buffack', function () {
+				socket.disconnect();
+				done();
+			});
+			var buf = base64.decode('asdfasdf');
+			socket.emit('buffa', buf);
+		});
+
+		it('should send binary data (as an ArrayBuffer) mixed with json', function (done) {
+			var socket = io({ forceNew: true });
+			socket.on('jsonbuff-ack', function () {
+				socket.disconnect();
+				done();
+			});
+			var buf = base64.decode('howdy');
+			socket.emit('jsonbuff', { hello: 'lol', message: buf, goodbye: 'gotcha' });
+		});
+
+		it('should send events with ArrayBuffers in the correct order', function (done) {
+			var socket = io({ forceNew: true });
+			socket.on('abuff2-ack', function () {
+				socket.disconnect();
+				done();
+			});
+			var buf = base64.decode('abuff1');
+			socket.emit('abuff1', buf);
+			socket.emit('abuff2', 'please arrive second');
+		});
+	}
+
+	/*
+  if (global.Blob && null != textBlobBuilder('xxx')) {
+    it('should send binary data (as a Blob)', function (done) {
+      var socket = io({ forceNew: true });
+      socket.on('back', function () {
         socket.disconnect();
         done();
       });
-      socket.disconnect();
-      socket.connect();
+      var blob = textBlobBuilder('hello world');
+      socket.emit('blob', blob);
     });
-	});
 
-	it('should fire reconnect_* events on socket', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
-
-    const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
-    const socket = manager.socket('/timeout_socket');
-
-    let reconnects = 0;
-    const reconnectCb = function (attempts) {
-      reconnects++;
-      expect(attempts).toBe(reconnects);
-    };
-
-    socket.on('reconnect_attempt', reconnectCb);
-    socket.on('reconnect_failed', function failed () {
-      expect(reconnects).toBe(2);
-      socket.close();
-      manager.close();
-      done();
+    it('should send binary data (as a Blob) mixed with json', function (done) {
+      var socket = io({ forceNew: true });
+      socket.on('jsonblob-ack', function () {
+        socket.disconnect();
+        done();
+      });
+      var blob = textBlobBuilder('EEEEEEEEE');
+      socket.emit('jsonblob', {hello: 'lol', message: blob, goodbye: 'gotcha'});
     });
-  });
 
-  it('should fire reconnecting (on socket) with attempts number when reconnecting twice', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
-
-    const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
-    const socket = manager.socket('/timeout_socket');
-
-    let reconnects = 0;
-    const reconnectCb =  attempts => {
-      reconnects++;
-      expect(attempts).toBe(reconnects);
-    };
-
-    socket.on('reconnecting', reconnectCb);
-    socket.on('reconnect_failed', () => {
-      expect(reconnects).toBe(2);
-      socket.close();
-      manager.close();
-      done();
+    it('should send events with Blobs in the correct order', function (done) {
+      var socket = io({ forceNew: true });
+      socket.on('blob3-ack', function () {
+        socket.disconnect();
+        done();
+      });
+      var blob = textBlobBuilder('BLOBBLOB');
+      socket.emit('blob1', blob);
+      socket.emit('blob2', 'second');
+      socket.emit('blob3', blob);
     });
-  });
-
-  it('should connect while disconnecting another socket', done => {
-    const manager = io.Manager(url);
-    const socket1 = manager.socket('/foo');
-    socket1.on('connect', () => {
-      const socket2 = manager.socket('/asd');
-      socket2.on('connect', done);
-      socket1.disconnect();
-    });
-	});
-
-	it('should emit date as string', done => {
-    const socket = io.connect(url, { forceNew: true });
-    socket.on('takeDate', data => {
-      socket.close();
-      expect(data).toEqual(jasmine.any(String));
-      done();
-    });
-    socket.on('connect', () => {
-			socket.emit('getDate');
-		});
-  });
-
-  it('should emit date in object', done => {
-    const socket = io.connect(url, { forceNew: true });
-    socket.on('takeDateObj', data => {
-      socket.close();
-      expect(data).toEqual(jasmine.any(Object));
-      expect(data.date).toEqual(jasmine.any(String));
-      done();
-    });
-		socket.on('connect', () => {
-			socket.emit('getDateObj');
-		});
-  });
+  }
+  */
 });
