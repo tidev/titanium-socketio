@@ -37,8 +37,6 @@ import {
 } from './internal/constants';
 import { encodeStr, hexTable } from './internal/querystring';
 
-import assertArgumentType from './_errors';
-
 /*
 // WHATWG URL implementation provided by internal/url
 const {
