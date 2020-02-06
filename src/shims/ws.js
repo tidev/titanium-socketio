@@ -34,7 +34,7 @@ const GUID = '258EAFA5-E914-47DA-95CA-C5AB0DC85B11';
 
 function randomBytes(length) {
 	if (Ti.Utils.randomBytes) {
-		return new Buffer(Ti.Utils.randomBytes(length));
+		return Buffer.from(Ti.Utils.randomBytes(length));
 	} else {
 		const randomBytes = Buffer.alloc(length);
 		for (let i = 0; i < length; i++) {
@@ -98,7 +98,6 @@ class Sender {
 	}
 
 	send(data, options, cb) {
-		console.log(`[WebSocket:Sender] send ${data}, ${JSON.stringify(options)}`);
 		const buffer = Buffer.from(data);
 		const perMessageDeflate = false;
 		let opcode = options.binary ? OpcodeBinaryFrame : OpcodeTextFrame;
@@ -158,8 +157,6 @@ class Sender {
 	}
 
 	sendFrame(frame, cb) {
-		console.log('[WebSocker:Sender] send frame');
-		console.log(frame);
 		this.socket.write(frame._tiBuffer, 0, frame.length, () => {
 			if (cb) {
 				cb();
@@ -175,14 +172,12 @@ class Sender {
 	 * @param {Number} options.opcode Frame opcode
 	 * @param {Boolean} options.fin Specifies whether or not to set the FIN bit
 	 * @param {Boolean} options.rsv1 Specifies whether or not to set the RSV1 bit
+	 * @return {Buffer}
 	 */
 	createFrameBuffer(options) {
-		console.log(`[WebSocker:Sender] createFrameBuffer ${JSON.stringify(options)}`);
 		const data = options.data;
 		let offset = 6;
 		let payloadLength = data.length;
-
-		console.log(`[WebSocker:Sender] createFrameBuffer data length: ${data.length}, content: ${data.toString()}`);
 
 		if (data.length >= 65536) {
 			offset += 8;
@@ -357,7 +352,7 @@ class WebSocket extends EventEmiter {
 			connected: e => {
 				this.sender = new Sender(this.socket);
 				this.performWsHandshake();
-				Ti.Stream.pump(self.socket, self.processInputStream.bind(self), 4096, true);
+				Ti.Stream.pump(self.socket, self.processInputStream.bind(self), 64 * 1024, true);
 			},
 			error: e => {
 				this.readyState = WebSocket.CLOSING;
@@ -373,8 +368,6 @@ class WebSocket extends EventEmiter {
 			throw new Error('WebSocket is not open: current readyState CONNECTING');
 		}
 
-		Ti.API.debug(`[WebSocket] send ${data}`);
-
 		if (typeof data === 'number') {
 			data = data.toString();
 		}
@@ -389,7 +382,6 @@ class WebSocket extends EventEmiter {
 	}
 
 	close(code, reason) {
-		console.log(`WebSocket.close ${code} ${reason}`);
 		if (this.readyState === WebSocket.CLOSED) {
 			return;
 		}
@@ -413,7 +405,6 @@ class WebSocket extends EventEmiter {
 		}
 
 		this.readyState = WebSocket.CLOSING;
-		console.log('Sending close frame');
 		this.sender.close(code, reason, err => {
 			this.closeFrameSent = true;
 			if (this.closeFrameReceived) {
@@ -448,13 +439,12 @@ class WebSocket extends EventEmiter {
 		const data = Ti.createBuffer({
 			value: httpHeader
 		});
-		this.socket.write(data);
+		this.socket.write(data, () => {});
 	}
 
 	processHandshake(buffer) {
 		Ti.API.debug('[WebSocket] Processing WebSocket handshake');
 		const response = buffer.toString();
-		console.log(response);
 		if (response.indexOf('HTTP/1.1 101') === -1) {
 			abortHandshake(this, 'Invalid HTTP status code received during WebSocket hanshake.');
 			return;
@@ -480,8 +470,6 @@ class WebSocket extends EventEmiter {
 	}
 
 	processInputStream(e) {
-		Ti.API.debug(`[WebSocket] Processing stream input: ${JSON.stringify(e)}`);
-
 		if (e.bytesProcessed === -1 && this.connected) {
 			this.readyState = WebSocket.CLOSED;
 			return this.disconnectAndEmitError(new Error('Unexpected error or EOF on socket during input stream processing.'));
@@ -587,7 +575,6 @@ class WebSocket extends EventEmiter {
 			if (response.opcode === OpcodePing) {
 				Ti.API.debug(`[WebSocket] Ping received: ${response.buffer.toString()}`);
 			} else if (response.opcode === OpcodeConnectionClose) {
-				Ti.API.debug('[WebSocket] Connection close opcode received');
 				let closeReason = 'connection closed by server';
 				let closeCode;
 				const data = response.buffer;
@@ -611,13 +598,11 @@ class WebSocket extends EventEmiter {
 				}
 			} else if (response.opcode === OpcodeTextFrame) {
 				const message = response.buffer.toString();
-				Ti.API.debug(`[WebSocket] Text frame received: ${message}`);
 				this.emitEvent('message', {
 					data: message
 				});
 			} else if (response.opcode === OpcodeBinaryFrame) {
 				const data = Buffer.from(response.buffer);
-				Ti.API.debug(`[WebSocket] Binary frame received: ${data}`);
 				this.emitEvent('message', {
 					data
 				});
@@ -628,8 +613,6 @@ class WebSocket extends EventEmiter {
 	}
 
 	emitEvent(name, data) {
-		Ti.API.debug(`[WebSocket] Emitting event "${name}"`);
-
 		const callbackPropertyName = `on${name}`;
 		if (this[callbackPropertyName]) {
 			this[callbackPropertyName](data);
@@ -640,7 +623,6 @@ class WebSocket extends EventEmiter {
 }
 
 function abortHandshake(webSocket, msg) {
-	console.log(`abortHandshake ${msg}`);
 	webSocket.readyState = WebSocket.CLOSING;
 
 	if (webSocket.socket.state === Ti.Network.Socket.CONNECTED) {
