@@ -13,7 +13,7 @@ module.exports = config => {
 			require('./support/socket.io-server')
 		],
 		titanium: {
-			sdkVersion: '8.0.0.GA'
+			sdkVersion: '9.0.0.v20200205142057'
 		},
 		customLaunchers: {
 			android: {
