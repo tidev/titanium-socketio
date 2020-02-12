@@ -23,17 +23,6 @@ describe('connection', () => {
 		socket.connect();
 	});
 
-	it('should emit and receive simple events', done => {
-		const socket = io.connect(url, { forceNew: true });
-		socket.on('hi', () => {
-			socket.disconnect();
-			done();
-		});
-		socket.on('connect', () => {
-			socket.emit('hi');
-		});
-	});
-
 	it('should emit error if host not reachable', done => {
 		const socket = io.connect('http://localhost:8080/', { forceNew: true });
 		socket.on('connect_error', () => {
