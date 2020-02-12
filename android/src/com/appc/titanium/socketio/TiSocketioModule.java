@@ -33,9 +33,6 @@ import io.socket.client.IO.Options;
 import io.socket.client.Manager;
 import io.socket.client.Socket;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 @Kroll.module(name = "TiSocketio", id = "ti.socketio")
 public class TiSocketioModule extends KrollModule
 {
@@ -48,9 +45,6 @@ public class TiSocketioModule extends KrollModule
 	public TiSocketioModule()
 	{
 		super();
-
-		Logger.getLogger(Manager.class.getName()).setLevel(Level.FINE);
-		Logger.getLogger(Socket.class.getName()).setLevel(Level.FINE);
 
 		this.managerCache = new HashMap<Manager, SocketManagerProxy>();
 	}
