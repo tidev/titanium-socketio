@@ -4,10 +4,10 @@
 
 ## Requirements
 
-- [x] Titanium SDK 7.0.0+
-- [x] iOS: Swift 4.2
+- [x] Android: Titanium SDK 7.0.0+
+- [x] iOS: Titanium SDK 7.4.0+ / Xcode 10.2 / Swift 5.0+
 
-> 💡 The iOS module is built with Swift 4.2. Because of Swift's still missing ABI stability (work in progress), you need to have the same Swift version installed that was used to build the release version of this module. You can check your current Swift version by using `swift -v` from the terminal.
+> 💡 The iOS module is built with Swift 5.0 and you need to have the same Swift version installed to be able to use this module. You can check your current Swift version by using swift -v from the terminal.
 
 ## Getting started
 

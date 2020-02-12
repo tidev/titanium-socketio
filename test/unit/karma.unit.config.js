@@ -7,7 +7,7 @@ module.exports = config => {
 		files: [
 			'test/unit/specs/**/*spec.js'
 		],
-		reporters: [ 'mocha' ],
+		reporters: [ 'mocha', 'junit' ],
 		plugins: [
 			'karma-*',
 			require('./support/socket.io-server')

@@ -49,5 +49,5 @@ platform/*.framework
 # Dependency direcotires
 node_modules/
 
-# Test output
+# Test reports
 TESTS-*.xml
