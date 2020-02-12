@@ -21,6 +21,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import io.socket.client.Ack;
@@ -39,7 +40,7 @@ public class SocketClientProxy extends KrollProxy
 	private SocketManagerProxy manager;
 	private int listenerId = 0;
 	private HashMap<Integer, Listener> listeners;
-	private HashMap<String, ArrayList<Integer>> eventListenerIds;
+	private HashMap<String, HashSet<Integer>> eventListenerIds;
 
 	// Constructor
 	public SocketClientProxy(Socket socket, SocketManagerProxy manager)
@@ -50,7 +51,7 @@ public class SocketClientProxy extends KrollProxy
 		this.manager = manager;
 
 		this.listeners = new HashMap<Integer, Listener>();
-		this.eventListenerIds = new HashMap<String, ArrayList<Integer>>();
+		this.eventListenerIds = new HashMap<String, HashSet<Integer>>();
 	}
 
 	// Properties
@@ -99,9 +100,9 @@ public class SocketClientProxy extends KrollProxy
 		};
 		this.socket.on(eventName, listener);
 		this.listeners.put(++this.listenerId, listener);
-		ArrayList<Integer> listenerIds = this.eventListenerIds.get(eventName);
+		HashSet<Integer> listenerIds = this.eventListenerIds.get(eventName);
 		if (listenerIds == null) {
-			listenerIds = new ArrayList<Integer>();
+			listenerIds = new HashSet<Integer>();
 			this.eventListenerIds.put(eventName, listenerIds);
 		}
 		listenerIds.add(this.listenerId);
@@ -117,7 +118,7 @@ public class SocketClientProxy extends KrollProxy
 		} else if (args.length == 1) {
 			String eventName = TiConvert.toString(args[0]);
 			this.socket.off(eventName);
-			ArrayList<Integer> listenerIds = this.eventListenerIds.get(eventName);
+			HashSet<Integer> listenerIds = this.eventListenerIds.get(eventName);
 			if (listenerIds != null) {
 				for (Integer listenerId : listenerIds) {
 					this.listeners.remove(listenerId);
@@ -130,7 +131,7 @@ public class SocketClientProxy extends KrollProxy
 			Listener listener = this.listeners.get(listenerId);
 			this.socket.off(eventName, listener);
 			this.listeners.remove(listenerId);
-			ArrayList<Integer> listenerIds = this.eventListenerIds.get(eventName);
+			HashSet<Integer> listenerIds = this.eventListenerIds.get(eventName);
 			if (listenerIds != null) {
 				listenerIds.remove(listenerId);
 			}
