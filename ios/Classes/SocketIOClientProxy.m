@@ -27,7 +27,7 @@
   if (self = [self _initWithPageContext:context]) {
     _io = manager;
     self.socket = socket;
-    self.handlerIdentifiers = [NSMapTable weakToStrongObjectsMapTable];
+    self.handlerIdentifiers = [NSMapTable strongToStrongObjectsMapTable];
     self.eventHandlers = [NSMutableDictionary new];
     self.eventRenamingMap = @{
                               @"connect_error": @"error",
@@ -103,7 +103,6 @@
   NSUUID *handlerId = [self.socket once:eventName
                                callback:^(NSArray *data, SocketAckEmitter *ack) {
                                  // TODO: Handle ack callback
-                                 [self.handlerIdentifiers removeObjectForKey:callback];
                                  [callback call:data thisObject:nil];
                                  [self removeEventHandler:callback forEvent:eventName];
                                }];
@@ -120,7 +119,6 @@
   if (args == nil) {
     [self.socket removeAllHandlers];
     [self removeAllEventHandlers];
-    [self.handlerIdentifiers removeAllObjects];
   } else if ([args count] == 1) {
     NSString *eventName = [TiUtils stringValue:[args objectAtIndex:0]];
     if (self.eventRenamingMap[eventName] != nil) {
@@ -134,14 +132,13 @@
       eventName = self.eventRenamingMap[eventName];
     }
     KrollCallback *handler = [args objectAtIndex:1];
-    NSUUID *handlerId = [self.handlerIdentifiers objectForKey:handler];
+    NSUUID *handlerId = [self findHandlerId:handler];
     if (handlerId != nil) {
       [self.socket offWithId:handlerId];
-      [self.handlerIdentifiers removeObjectForKey:handler];
       [self removeEventHandler:handler forEvent:eventName];
     }
   }
-  
+
   return self;
 }
 
@@ -179,7 +176,7 @@
   } else {
     [self.socket emit:eventName with:data];
   }
-  
+
   return self;
 }
 
@@ -242,6 +239,7 @@ care of safely storing the handler function and protecting it against GC.
   }
 
   [self removeEventListener:@[eventName, callback]];
+  [self removeHandlerId:callback];
 }
 
 - (void)removeAllEventHandlersForEvent:(NSString *)eventName
@@ -251,9 +249,8 @@ care of safely storing the handler function and protecting it against GC.
     return;
   }
   for (KrollCallback *callback in handlers) {
-    [self removeEventListener:@[eventName, callback]];
+    [self removeEventHandler:callback forEvent:eventName];
   }
-  [handlers removeAllObjects];
   [self.eventHandlers removeObjectForKey:eventName];
 }
 
@@ -261,6 +258,27 @@ care of safely storing the handler function and protecting it against GC.
 {
   for (NSString *eventName in self.eventHandlers.allKeys) {
     [self removeAllEventHandlersForEvent:eventName];
+  }
+}
+
+- (NSUUID *)findHandlerId:(KrollCallback *)handler
+{
+  for (KrollCallback *storedCallback in self.handlerIdentifiers.keyEnumerator) {
+    if ([storedCallback isEqual: handler]) {
+      return [self.handlerIdentifiers objectForKey:storedCallback];
+    }
+  }
+
+  return nil;
+}
+
+- (void)removeHandlerId:(KrollCallback *)handler
+{
+  for (KrollCallback *storedCallback in self.handlerIdentifiers.keyEnumerator) {
+    if ([storedCallback isEqual: handler]) {
+      [self.handlerIdentifiers removeObjectForKey:storedCallback];
+      return;
+    }
   }
 }
 
