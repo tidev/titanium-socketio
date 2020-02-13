@@ -46,6 +46,10 @@ let createSocketIOServer = (config, loggerFactory) => {
 			socket.emit('hi');
 		});
 
+		socket.on('echo', (data) => {
+			socket.emit('echo', data);
+		});
+
 		// ack tests
 		socket.on('ack', () => {
 			socket.emit('ack', (a, b) => {

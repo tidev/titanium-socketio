@@ -23,17 +23,6 @@ describe('connection', () => {
 		socket.connect();
 	});
 
-	it('should emit and receive simple events', done => {
-		const socket = io.connect(url, { forceNew: true });
-		socket.on('hi', () => {
-			socket.disconnect();
-			done();
-		});
-		socket.on('connect', () => {
-			socket.emit('hi');
-		});
-	});
-
 	it('should emit error if host not reachable', done => {
 		const socket = io.connect('http://localhost:8080/', { forceNew: true });
 		socket.on('connect_error', () => {
@@ -206,95 +195,87 @@ describe('connection', () => {
 			pending('test requirements not applicable on iOS');
 		}
 
-    const socket = io.connect(url + '/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
-    socket.once('reconnect_attempt', () => {
-      socket.on('reconnect_attempt', () => {
-        socket.disconnect();
-        done();
-      });
-      socket.disconnect();
-      socket.connect();
-    });
+		const socket = io.connect(url + '/invalid', { forceNew: true, timeout: 0, reconnectionDelay: 10 });
+		socket.once('reconnect_attempt', () => {
+			socket.on('reconnect_attempt', () => {
+				socket.disconnect();
+				done();
+			});
+			socket.disconnect();
+			socket.connect();
+		});
 	});
 
-	it('should fire reconnect_* events on socket', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
+	xit('should fire reconnect_* events on socket', done => {
+		const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
+		const socket = manager.socket('/timeout_socket');
 
-    const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
-    const socket = manager.socket('/timeout_socket');
+		let reconnects = 0;
+		const reconnectCb = attempts => {
+			reconnects++;
+			expect(attempts).toBe(reconnects);
+		};
 
-    let reconnects = 0;
-    const reconnectCb = function (attempts) {
-      reconnects++;
-      expect(attempts).toBe(reconnects);
-    };
+		socket.on('reconnect_attempt', reconnectCb);
+		socket.on('reconnect_failed', function failed () {
+			expect(reconnects).toBe(2);
+			socket.close();
+			manager.close();
+			done();
+		});
+	});
 
-    socket.on('reconnect_attempt', reconnectCb);
-    socket.on('reconnect_failed', function failed () {
-      expect(reconnects).toBe(2);
-      socket.close();
-      manager.close();
-      done();
-    });
-  });
+	xit('should fire reconnecting (on socket) with attempts number when reconnecting twice', done => {
+		const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
+		const socket = manager.socket('/timeout_socket');
 
-  it('should fire reconnecting (on socket) with attempts number when reconnecting twice', done => {
-		if (Ti.Platform.osname !== 'android') {
-			pending('test requirements not applicable on iOS');
-		}
+		let reconnects = 0;
+		const reconnectCb = attempts => {
+			reconnects++;
+			expect(attempts).toBe(reconnects);
+		};
 
-    const manager = io.Manager(url, { reconnection: true, timeout: 0, reconnectionAttempts: 2, reconnectionDelay: 10 });
-    const socket = manager.socket('/timeout_socket');
+		socket.on('reconnecting', reconnectCb);
+		socket.on('reconnect_failed', () => {
+			expect(reconnects).toBe(2);
+			socket.close();
+			manager.close();
+			done();
+		});
+	});
 
-    let reconnects = 0;
-    const reconnectCb =  attempts => {
-      reconnects++;
-      expect(attempts).toBe(reconnects);
-    };
-
-    socket.on('reconnecting', reconnectCb);
-    socket.on('reconnect_failed', () => {
-      expect(reconnects).toBe(2);
-      socket.close();
-      manager.close();
-      done();
-    });
-  });
-
-  it('should connect while disconnecting another socket', done => {
-    const manager = io.Manager(url);
-    const socket1 = manager.socket('/foo');
-    socket1.on('connect', () => {
-      const socket2 = manager.socket('/asd');
-      socket2.on('connect', done);
-      socket1.disconnect();
-    });
+	it('should connect while disconnecting another socket', done => {
+		const manager = io.Manager(url);
+		const socket1 = manager.socket('/foo');
+		socket1.on('connect', () => {
+			const socket2 = manager.socket('/asd');
+			socket2.on('connect', done);
+			socket1.disconnect();
+		});
 	});
 
 	it('should emit date as string', done => {
-    const socket = io.connect(url, { forceNew: true });
-    socket.on('takeDate', data => {
-      socket.close();
-      expect(data).toEqual(jasmine.any(String));
-      done();
-    });
-    socket.on('connect', () => {
+		const socket = io.connect(url, { forceNew: true });
+		socket.on('takeDate', data => {
+			socket.close();
+			expect(data).toEqual(jasmine.any(String));
+			done();
+		});
+		socket.on('connect', () => {
 			socket.emit('getDate');
 		});
-  });
+	});
 
-  it('should emit date in object', done => {
-    const socket = io.connect(url, { forceNew: true });
-    socket.on('takeDateObj', data => {
-      socket.close();
-      expect(data).toEqual(jasmine.any(Object));
-      expect(data.date).toEqual(jasmine.any(String));
-      done();
-    });
+	it('should emit date in object', done => {
+		const socket = io.connect(url, { forceNew: true });
+		socket.on('takeDateObj', data => {
+			socket.close();
+			expect(data).toEqual(jasmine.any(Object));
+			expect(data.date).toEqual(jasmine.any(String));
+			done();
+		});
 		socket.on('connect', () => {
 			socket.emit('getDateObj');
 		});
-  });
+	});
 });
