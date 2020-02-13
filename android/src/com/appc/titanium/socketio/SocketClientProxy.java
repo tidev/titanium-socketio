@@ -92,9 +92,6 @@ public class SocketClientProxy extends KrollProxy
 			@Override
 			public void call(Object... args)
 			{
-				if (eventName.equals("reconnect_attempt")) {
-					Log.d(LCAT, "reconnect_attempt " + args[0]);
-				}
 				callback.call(getKrollObject(), convertArguments(args));
 			}
 		};
