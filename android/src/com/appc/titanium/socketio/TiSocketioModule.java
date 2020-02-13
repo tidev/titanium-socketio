@@ -8,6 +8,7 @@
  */
 package com.appc.titanium.socketio;
 
+import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
@@ -51,14 +52,11 @@ public class TiSocketioModule extends KrollModule
 	// JS Methods
 
 	@Kroll.method
-	public SocketClientProxy connect(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
+	public SocketClientProxy _nativeConnect(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
 	{
 		boolean autoConnect = jsOptions != null ? TiConvert.toBoolean(jsOptions, "autoConnect", true) : true;
 		Options options = this.convertOptions(jsOptions);
 		Socket socket = IO.socket(uri, options);
-		if (autoConnect) {
-			socket.connect();
-		}
 		SocketManagerProxy managerProxy;
 		if (this.managerCache.containsKey(socket.io())) {
 			managerProxy = this.managerCache.get(socket.io());
@@ -67,12 +65,15 @@ public class TiSocketioModule extends KrollModule
 			this.managerCache.put(socket.io(), managerProxy);
 		}
 		SocketClientProxy socketProxy = new SocketClientProxy(socket, managerProxy);
+		if (autoConnect) {
+			socket.connect();
+		}
 
 		return socketProxy;
 	}
 
 	@Kroll.method
-	public SocketManagerProxy Manager(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
+	public SocketManagerProxy _nativeManager(String uri, @Kroll.argument(optional=true) HashMap jsOptions) throws URISyntaxException
 	{
 		Options options = this.convertOptions(jsOptions);
 		Manager manager = new Manager(new URI(uri), options);
