@@ -2,9 +2,9 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 2.0.1
+version: 3.0.0
 apiversion: 4
-architectures: arm64-v8a armeabi-v7a x86
+architectures: arm64-v8a armeabi-v7a x86 x86_64
 description: ti.socketio
 author: Axway Appcelerator
 license: Apache-2.0
@@ -15,5 +15,5 @@ name: ti.socketio
 moduleid: ti.socketio
 guid: 65fbdc59-432f-40d8-8ea9-02799887db3c
 platform: android
-minsdk: 7.0.0.GA
+minsdk: 9.0.0
 commonjs: true
