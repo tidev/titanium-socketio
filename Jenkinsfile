@@ -2,6 +2,6 @@
 library 'pipeline-library'
 
 buildModule {
-	sdkVersion = '9.0.0.v20200205142057'
-	iosLabels = 'osx && xcode-11'
+	sdkVersion = '9.3.2.GA'
+	iosLabels = 'osx && xcode-12 && appium' // need carthage which we install on appium nodes...
 }
