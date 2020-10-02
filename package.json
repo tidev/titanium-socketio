@@ -1,6 +1,6 @@
 {
   "name": "titanium-socketio",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Socket.io module for Titanium using native Android and iOS clients.",
   "private": true,
   "scripts": {
