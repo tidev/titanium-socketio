@@ -68,8 +68,10 @@ function patchSocketPrototype(socket) {
 		},
 		once: {
 			value: function once(eventName, listener) {
-				this.on(eventName, function () {
-					this.off(eventName, listener);
+				// we *must* use the exact same listener function in on *and* off here, or else
+				// off never actually unregisters because there's a mismatch
+				this.on(eventName, function onceWrapper() {
+					this.off(eventName, onceWrapper); // MUST BE `onceWrapper` function, NOT original `listener`
 					listener.apply(null, arguments);
 				});
 				return this;
