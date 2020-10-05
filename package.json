@@ -29,7 +29,7 @@
     "jasmine-core": "^3.6.0",
     "karma": "^5.2.3",
     "karma-jasmine": "^4.0.1",
-    "karma-junit-reporter": "^1.2.0",
+    "karma-junit-reporter": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-titanium-launcher": "^0.7.8",
     "socket.io": "^2.3.0"
