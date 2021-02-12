@@ -1,2 +1,2 @@
-github "daltoniam/Starscream" "3.1.0"
-github "socketio/socket.io-client-swift" "v15.0.0"
+github "appcelerator-modules/socket.io-client-swift" "ebc20ec8d82063f709ec31ec697e58a4e1e4802c"
+github "daltoniam/Starscream" "3.1.1"
