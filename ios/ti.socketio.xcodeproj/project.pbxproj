@@ -26,8 +26,8 @@
 		24DD6CFA1134B3F500162E58 /* TiSocketioModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DD6CF81134B3F500162E58 /* TiSocketioModule.m */; };
 		24DE9E1111C5FE74003F90F6 /* TiSocketioModuleAssets.h in Headers */ = {isa = PBXBuildFile; fileRef = 24DE9E0F11C5FE74003F90F6 /* TiSocketioModuleAssets.h */; };
 		24DE9E1211C5FE74003F90F6 /* TiSocketioModuleAssets.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DE9E1011C5FE74003F90F6 /* TiSocketioModuleAssets.m */; };
-		4A2196D422529C8C00DD6DEA /* Starscream.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB2678320B1AAE000E4E3DD /* Starscream.framework */; };
-		4A2196D522529C9500DD6DEA /* SocketIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB2678220B1AAE000E4E3DD /* SocketIO.framework */; };
+		4A2196D422529C8C00DD6DEA /* Starscream.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB2678320B1AAE000E4E3DD /* Starscream.xcframework */; };
+		4A2196D522529C9500DD6DEA /* SocketIO.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4AB2678220B1AAE000E4E3DD /* SocketIO.xcframework */; };
 		4AA6A17D21C3E22200AE770E /* SocketManagerProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AA6A17B21C3E22200AE770E /* SocketManagerProxy.h */; };
 		4AA6A17E21C3E22200AE770E /* SocketManagerProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 4AA6A17C21C3E22200AE770E /* SocketManagerProxy.m */; };
 		4AB2678820B1B13500E4E3DD /* SocketIOClientProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = 4AB2678620B1B13500E4E3DD /* SocketIOClientProxy.h */; };
@@ -54,8 +54,8 @@
 		24DE9E1011C5FE74003F90F6 /* TiSocketioModuleAssets.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiSocketioModuleAssets.m; path = Classes/TiSocketioModuleAssets.m; sourceTree = "<group>"; };
 		4AA6A17B21C3E22200AE770E /* SocketManagerProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SocketManagerProxy.h; path = Classes/SocketManagerProxy.h; sourceTree = "<group>"; };
 		4AA6A17C21C3E22200AE770E /* SocketManagerProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = SocketManagerProxy.m; path = Classes/SocketManagerProxy.m; sourceTree = "<group>"; };
-		4AB2678220B1AAE000E4E3DD /* SocketIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SocketIO.framework; path = platform/SocketIO.framework; sourceTree = "<group>"; };
-		4AB2678320B1AAE000E4E3DD /* Starscream.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Starscream.framework; path = platform/Starscream.framework; sourceTree = "<group>"; };
+		4AB2678220B1AAE000E4E3DD /* SocketIO.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = SocketIO.xcframework; path = platform/SocketIO.xcframework; sourceTree = "<group>"; };
+		4AB2678320B1AAE000E4E3DD /* Starscream.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = Starscream.xcframework; path = platform/Starscream.xcframework; sourceTree = "<group>"; };
 		4AB2678620B1B13500E4E3DD /* SocketIOClientProxy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = SocketIOClientProxy.h; path = Classes/SocketIOClientProxy.h; sourceTree = "<group>"; };
 		4AB2678720B1B13500E4E3DD /* SocketIOClientProxy.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = SocketIOClientProxy.m; path = Classes/SocketIOClientProxy.m; sourceTree = "<group>"; };
 		AA747D9E0F9514B9006C5449 /* TiSocketio_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TiSocketio_Prefix.pch; sourceTree = SOURCE_ROOT; };
@@ -69,8 +69,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				4A2196D522529C9500DD6DEA /* SocketIO.framework in Frameworks */,
-				4A2196D422529C8C00DD6DEA /* Starscream.framework in Frameworks */,
-				AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */,
+				4A2196D422529C8C00DD6DEA /* Starscream.xcframework in Frameworks */,
+				AACBBE4A0F95108600F1A2B1 /* Foundation.xcframework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -100,8 +100,8 @@
 			isa = PBXGroup;
 			children = (
 				4AB2678220B1AAE000E4E3DD /* SocketIO.framework */,
-				4AB2678320B1AAE000E4E3DD /* Starscream.framework */,
-				AACBBE490F95108600F1A2B1 /* Foundation.framework */,
+				4AB2678320B1AAE000E4E3DD /* Starscream.xcframework */,
+				AACBBE490F95108600F1A2B1 /* Foundation.xcframework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
