@@ -16,3 +16,4 @@ moduleid: ti.socketio
 guid: 65fbdc59-432f-40d8-8ea9-02799887db3c
 platform: iphone
 minsdk: 9.2.0
+mac: false
