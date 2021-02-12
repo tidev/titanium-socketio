@@ -23,7 +23,7 @@ function init (logger, config, cli, appc) {
 		pre: function (builder, done) {
 			logger.info('Running carthage...');
 
-			const p = spawn('carthage', [ 'bootstrap', '--platform', 'ios', '--cache-builds' ], { cwd: builder.projectDir });
+			const p = spawn('carthage', [ 'bootstrap', '--platform', 'ios', '--cache-builds', '--use-xcframeworks' ], { cwd: builder.projectDir });
 			p.stderr.on('data', data => logger.error(data.toString().trim()));
 			p.stdout.on('data', data => logger.trace(data.toString().trim()));
 			p.on('close', function (code) {
@@ -32,10 +32,10 @@ function init (logger, config, cli, appc) {
 				}
 
 				const fs = require('fs-extra');
-				const subdirs = fs.readdirSync(path.join(builder.projectDir, 'Carthage/Build/iOS'));
-				const frameworkDirs = subdirs.filter(dir => dir.endsWith('.framework'));
+				const subdirs = fs.readdirSync(path.join(builder.projectDir, 'Carthage/Build'));
+				const frameworkDirs = subdirs.filter(dir => dir.endsWith('.xcframework'));
 				for (const frameworkDir of frameworkDirs) {
-					fs.copySync(path.join(builder.projectDir, 'Carthage/Build/iOS', frameworkDir), path.join(builder.projectDir, 'platform', frameworkDir));
+					fs.copySync(path.join(builder.projectDir, 'Carthage/Build', frameworkDir), path.join(builder.projectDir, 'platform', frameworkDir));
 				}
 				done();
 			});
