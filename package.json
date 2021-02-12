@@ -32,6 +32,6 @@
     "karma-junit-reporter": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-titanium-launcher": "^0.7.8",
-    "socket.io": "^2.3.0"
+    "socket.io": "^2.4.0"
   }
 }
