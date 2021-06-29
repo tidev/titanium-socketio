@@ -3,43 +3,9 @@ updates:
 - package-ecosystem: npm
   directory: "/"
   schedule:
-    interval: daily
-    time: "11:00"
+    interval: weekly
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: y18n
-    versions:
-    - 4.0.1
-    - 4.0.2
-  - dependency-name: eslint
-    versions:
-    - 7.18.0
-    - 7.21.0
-    - 7.22.0
-    - 7.23.0
   - dependency-name: karma
     versions:
-    - 6.0.3
-    - 6.0.4
-    - 6.1.0
-    - 6.1.1
-    - 6.1.2
-    - 6.2.0
-    - 6.3.0
-    - 6.3.1
-  - dependency-name: jasmine-core
-    versions:
-    - 3.7.0
-  - dependency-name: socket.io
-    versions:
-    - 3.1.0
-    - 3.1.1
-    - 3.1.2
-    - 4.0.0
-  - dependency-name: eslint-config-axway
-    versions:
-    - 6.0.0
-  - dependency-name: danger
-    versions:
-    - 10.6.1
-    - 10.6.3
+    - ">=6.0.0"
