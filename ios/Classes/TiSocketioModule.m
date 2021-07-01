@@ -126,7 +126,7 @@
     manager = self.managers[cacheIdentifier];
   }
 
-  return [manager socket:@[path, options]];
+  return [manager socket:@[ path, options ]];
 }
 
 @end

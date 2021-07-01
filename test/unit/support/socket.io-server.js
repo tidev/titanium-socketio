@@ -13,7 +13,7 @@ let createSocketIOServer = (config, loggerFactory) => {
 		});
 	});
 
-	server.of('/asd').on('connection', socket => {
+	server.of('/asd').on('connection', () => {
 		// register namespace
 	});
 

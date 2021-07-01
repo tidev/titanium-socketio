@@ -5,8 +5,8 @@
 //  Created by Jan Vennemann on 20.05.18.
 //
 
-#import "SocketManagerProxy.h"
 #import "SocketIOClientProxy.h"
+#import "SocketManagerProxy.h"
 #import "TiUtils.h"
 
 #import <SocketIO/SocketIO-Swift.h>
@@ -30,10 +30,10 @@
     self.handlerIdentifiers = [NSMapTable strongToStrongObjectsMapTable];
     self.eventHandlers = [NSMutableDictionary new];
     self.eventRenamingMap = @{
-                              @"connect_error": @"error",
-                              @"reconnect_attempt": @"reconnectAttempt",
-                              @"reconnecting": @"reconnectAttempt"
-                              };
+      @"connect_error" : @"error",
+      @"reconnect_attempt" : @"reconnectAttempt",
+      @"reconnecting" : @"reconnectAttempt"
+    };
   }
 
   return self;
@@ -161,7 +161,7 @@
 
     // Exclude the first argument to only map the data between the second and penultimate index
     NSArray *metaArguments = [args subarrayWithRange:NSMakeRange(1, lastArgumentIndex)];
-    [metaArguments enumerateObjectsUsingBlock:^(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    [metaArguments enumerateObjectsUsingBlock:^(id _Nonnull obj, NSUInteger idx, BOOL *_Nonnull stop) {
       [data addObject:obj];
     }];
 
@@ -222,7 +222,7 @@ care of safely storing the handler function and protecting it against GC.
  */
 - (void)storeEventHandler:(KrollCallback *)callback forEvent:(NSString *)eventName
 {
-  [self addEventListener:@[eventName, callback]];
+  [self addEventListener:@[ eventName, callback ]];
 
   NSMutableSet *handlers = self.eventHandlers[eventName];
   if (handlers == nil) {
@@ -238,7 +238,7 @@ care of safely storing the handler function and protecting it against GC.
     [handlers removeObject:callback];
   }
 
-  [self removeEventListener:@[eventName, callback]];
+  [self removeEventListener:@[ eventName, callback ]];
   [self removeHandlerId:callback];
 }
 
@@ -264,7 +264,7 @@ care of safely storing the handler function and protecting it against GC.
 - (NSUUID *)findHandlerId:(KrollCallback *)handler
 {
   for (KrollCallback *storedCallback in self.handlerIdentifiers.keyEnumerator) {
-    if ([storedCallback isEqual: handler]) {
+    if ([storedCallback isEqual:handler]) {
       return [self.handlerIdentifiers objectForKey:storedCallback];
     }
   }
@@ -275,7 +275,7 @@ care of safely storing the handler function and protecting it against GC.
 - (void)removeHandlerId:(KrollCallback *)handler
 {
   for (KrollCallback *storedCallback in self.handlerIdentifiers.keyEnumerator) {
-    if ([storedCallback isEqual: handler]) {
+    if ([storedCallback isEqual:handler]) {
       [self.handlerIdentifiers removeObjectForKey:storedCallback];
       return;
     }

@@ -54,9 +54,10 @@
     if (fabs(self.timeout - 0.0f) < DBL_EPSILON) {
       [socket connect];
     } else {
-      [socket connectWithTimeoutAfter:self.timeout / 1000.f withHandler:^(void) {
-        [socketProxy fireClientEvent:@"connect_timeout" data:nil];
-      }];
+      [socket connectWithTimeoutAfter:self.timeout / 1000.f
+                          withHandler:^(void) {
+                            [socketProxy fireClientEvent:@"connect_timeout" data:nil];
+                          }];
     }
   }
   return socketProxy;
@@ -84,7 +85,7 @@
 
 - (id)toString:(id)args
 {
-  return [NSString stringWithFormat: @"SocketManager (%p) %@", self, self.manager];
+  return [NSString stringWithFormat:@"SocketManager (%p) %@", self, self.manager];
 }
 
 #pragma mark - Private methods
