@@ -4,7 +4,12 @@
   "description": "Socket.io module for Titanium using native Android and iOS clients.",
   "private": true,
   "scripts": {
-    "lint": "npm run lint:js",
+    "format:android": "npm run lint:android -- --fix",
+    "format:ios": "npm run lint:ios -- --fix",
+    "format:js": "npm run lint:js -- --fix",
+    "lint": "npm run lint:android && npm run lint:ios && npm run lint:js",
+    "lint:android": "clang-format-lint android/src/ti/**/*.java",
+    "lint:ios": "clang-format-lint ios/**/*.m ios/**/*.h",
     "lint:js": "eslint test android/assets",
     "test": "karma start test/unit/karma.unit.config.js",
     "test:android": "npm test -- --browsers android",
@@ -20,7 +25,9 @@
   "homepage": "https://github.com/appcelerator-modules/titanium-socketio#readme",
   "devDependencies": {
     "@seadub/danger-plugin-dependencies": "^1.0.0",
+    "@seadub/clang-format-lint": "0.0.2",
     "@seadub/danger-plugin-junit": "^0.2.0",
+    "clang-format": "^1.5.0",
     "danger": "^10.6.4",
     "eslint": "^7.28.0",
     "eslint-config-axway": "^6.0.1",
