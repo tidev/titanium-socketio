@@ -4,10 +4,12 @@
 
 ## Requirements
 
-- [x] Android: Titanium SDK 7.0.0+
+- [x] Android: Titanium SDK 9.0.0+
 - [x] iOS: Titanium SDK 7.4.0+ / Xcode 10.2 / Swift 5.0+
 
 > 💡 The iOS module is built with Swift 5.0 and you need to have the same Swift version installed to be able to use this module. You can check your current Swift version by using swift -v from the terminal.
+
+> 💡 The Android module version 4.x will support Socket.io Server 3.x/4.x
 
 ## Getting started
 
@@ -102,13 +104,12 @@ Based on the [socket.io-client-java](https://github.com/socketio/socket.io-clien
 ## Contributions
 
 Open source contributions are greatly appreciated! If you have a bugfix, improvement or new feature, please create
-[an issue](https://github.com/appcelerator-modules/titanium-socketio/issues/new) first and submit a [pull request](https://github.com/appcelerator-modules/titanium-socketio/pulls/new) against master.
+[an issue](https://github.com/tidev/titanium-socketio/issues/new) first and submit a [pull request](https://github.com/tidev/titanium-socketio/pulls/new) against master.
 
 ## Getting Help
 
 If you have questions about the Socket.IO module for Titanium, feel free to reach out on Stackoverflow or the
-`#helpme` channel on [TiSlack](http://tislack.org). In case you find a bug, create a [new issue](/issues/new)
-or open a [new JIRA ticket](https://jira.appcelerator.org).
+`#helpme` channel on [TiSlack](http://tislack.org). In case you find a bug, create a [new issue](/issues/new).
 
 ## License
 
