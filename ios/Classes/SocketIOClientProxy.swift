@@ -8,11 +8,12 @@
 
 import UIKit
 import TitaniumKit
+import SocketIO
 
 @objc(SocketIOClientProxy)
 class SocketIOClientProxy: TiProxy {
 
-  override func _init(withPageContext context: TiEvaluator!) -> Self? {
+  func _init(withPageContext context: TiEvaluator!, socket: SocketIOClient, manager: SocketManagerProxy) -> Self? {
     super._init(withPageContext: context)
 
     // Custom proxy init
