@@ -2,8 +2,8 @@
 //  TiSocketioExampleProxy.swift
 //  ti.socketio
 //
-//  Created by Your Name
-//  Copyright (c) 2022 Your Company. All rights reserved.
+//  Created by Hans Knöchel
+//  Copyright (c) 2022 TiDev. All rights reserved.
 //
 
 import UIKit
