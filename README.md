@@ -110,6 +110,10 @@ If you have questions about the Socket.IO module for Titanium, feel free to reac
 `#helpme` channel on [TiSlack](http://tislack.org). In case you find a bug, create a [new issue](/issues/new)
 or open a [new JIRA ticket](https://jira.appcelerator.org).
 
+## Legal
+
+Titanium is a registered trademark of TiDev Inc. All Titanium trademark and patent rights were transferred and assigned to TiDev Inc. on 04/07/2022. Please see the LEGAL information about using our trademarks, privacy policy, terms of usage and other legal information at https://tidev.io/legal.
+
 ## License
 
-Apache License, Version 2.0
+Titanium is licensed under the OSI approved Apache Public License (Version 2). All trademark rights were assigned to TiDev, Inc. on 04/07/2022 from Axway, Inc. Please see the LICENSE file for more details.
