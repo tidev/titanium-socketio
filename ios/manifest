@@ -4,7 +4,7 @@
 #
 version: 4.0.0
 apiversion: 2
-architectures: armv7 arm64 i386 x86_64
+architectures: arm64 x86_64
 description: Socket.io client for Titanium
 author: Axway Appcelerator
 license: Apache-2.0
