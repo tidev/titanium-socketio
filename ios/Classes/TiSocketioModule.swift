@@ -31,7 +31,7 @@ class TiSocketioModule: TiModule {
 
     var options: [String: Any] = [:]
 
-    if let customOptions = args[1] as? [String: Any] {
+    if args.count == 2 , let customOptions = args[1] as? [String: Any] {
       options = customOptions
     }
 
@@ -81,7 +81,7 @@ class TiSocketioModule: TiModule {
 
     let cacheIdentifier: String = urlComponents.string ?? ""
     
-    let forceNew = TiUtils.boolValue("forcrNew", properties: options, def: false)
+    let forceNew = TiUtils.boolValue("forceNew", properties: options, def: false)
     _options.removeValue(forKey: "forceNew")
     let sameNamespace = self.managers[cacheIdentifier]?.manager.nsps[path] != nil
     let newConnection = sameNamespace || forceNew
