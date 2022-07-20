@@ -33,7 +33,7 @@ module.exports = config => {
 		client: {
 			jasmine: {
 				random: false,
-				timeoutInterval: 20000
+				timeoutInterval: 60000
 			}
 		},
 		singleRun: true,
