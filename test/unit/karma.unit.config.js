@@ -38,7 +38,7 @@ module.exports = config => {
 		singleRun: true,
 		retryLimit: 0,
 		concurrency: 1,
-		captureTimeout: 400000,
+		captureTimeout: 1000000,
 		logLevel: config.LOG_DEBUG
 	});
 };
