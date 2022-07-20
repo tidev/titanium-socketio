@@ -32,7 +32,8 @@ module.exports = config => {
 		browsers: [ 'android', 'ios' ],
 		client: {
 			jasmine: {
-				random: false
+				random: false,
+				timeoutInterval: 20000
 			}
 		},
 		singleRun: true,
