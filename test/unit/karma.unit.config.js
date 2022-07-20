@@ -13,7 +13,7 @@ module.exports = config => {
 			require('./support/socket.io-server')
 		],
 		titanium: {
-			sdkVersion: config.sdkVersion || '9.3.2.GA'
+			sdkVersion: config.sdkVersion || '11.0.0.GA'
 		},
 		customLaunchers: {
 			android: {
@@ -38,7 +38,7 @@ module.exports = config => {
 		singleRun: true,
 		retryLimit: 0,
 		concurrency: 1,
-		captureTimeout: 300000,
+		captureTimeout: 400000,
 		logLevel: config.LOG_DEBUG
 	});
 };
