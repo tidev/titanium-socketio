@@ -37,6 +37,12 @@ jobs:
           ${{ runner.OS }}-node-modules-
           ${{ runner.OS }}-
 
+    - name: Setup Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: 11
+
     - run: npm ci
       name: Install dependencies
       if: steps.node-cache.outputs.cache-hit != 'true'
