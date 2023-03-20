@@ -8,7 +8,6 @@
 
 import UIKit
 import TitaniumKit
-import SocketIO
 
 @objc(SocketIOClientProxy)
 class SocketIOClientProxy: TiProxy {
@@ -56,17 +55,18 @@ class SocketIOClientProxy: TiProxy {
   }
   
   @objc(connect:)
-  func connect(args: [Any]) {
+  func connect(args: [Any]?) {
+    NSLog("[WARN] connect()");
     socket.connect()
   }
   
   @objc(close:)
-  func close(args: [Any]) {
+  func close(args: [Any]?) {
     disconnect(args: args)
   }
   
   @objc(disconnect:)
-  func disconnect(args: [Any]) {
+  func disconnect(args: [Any]?) {
     socket.disconnect()
   }
   
@@ -82,10 +82,12 @@ class SocketIOClientProxy: TiProxy {
     
     
     let handlerId = socket.on(eventName) { data, ack in
+      NSLog("[WARN] Socket status updated for " + eventName + ", data = " + data.description)
       callback.call(data, thisObject: self)
     }
     
     handlerIdentifiers[callback] = handlerId
+    NSLog("[WARN] Registering handler = " + handlerId.description + " for event = " + eventName)
     storeEventHandler(callback, for: eventName)
     
     return self

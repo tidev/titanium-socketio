@@ -98,6 +98,9 @@ class TiSocketioModule: TiModule {
       }
       manager = self.managers[cacheIdentifier]
     }
+    
+    NSLog("[WARN] path = " + path);
+    NSLog("[WARN] options = " + options.description);
 
     return manager.socket([path, options])
   }

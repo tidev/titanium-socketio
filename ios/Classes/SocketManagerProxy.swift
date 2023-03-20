@@ -8,7 +8,6 @@
 
 import UIKit
 import TitaniumKit
-import SocketIO
 
 @objc(SocketManagerProxy)
 class SocketManagerProxy: TiProxy {
@@ -39,21 +38,33 @@ class SocketManagerProxy: TiProxy {
 
     let socket: SocketIOClient = {
       if (path == "/") {
+        NSLog("[WARN] def socket");
+
         return manager.defaultSocket
       } else {
+        NSLog("[WARN] socket for ns = " + path);
         return manager.socket(forNamespace: path)
       }
     }()
     
     let socketProxy = SocketIOClientProxy()._init(withPageContext: pageContext, socket: socket, manager: self)!
     if autoConnect {
+      NSLog("[WARN] autoconenct");
+
       if fabs(timeout - 0.0) < Double.ulpOfOne {
+        NSLog("[WARN] connect");
+
         socket.connect()
       } else {
+        NSLog("[WARN] connect after timeout = " + timeout.description);
+
         socket.connect(timeoutAfter: timeout / 1000.0) {
           socketProxy.fireEvent("connect_timeout")
         }
       }
+    } else {
+      NSLog("[WARN] no autoconnect");
+
     }
     
     return socketProxy
