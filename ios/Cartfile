@@ -1,1 +1,1 @@
-github "appcelerator-modules/socket.io-client-swift" "xcframework"
+github "socketio/socket.io-client-swift"
