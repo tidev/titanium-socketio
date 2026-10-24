@@ -1,12 +1,30 @@
 # Socket.io iOS module
 
-This is the iOS part of the ti.socketio module.
+This is the iOS part of the ti.socketio module. It is a Swift module and wraps the [socket.io-client-swift](https://github.com/socketio/socket.io-client-swift) library.
+
+## Requirements
+
+The module needs Titanium SDK 13.1.0.GA or later. That version added Swift Package Manager (SPM) support for native modules. An app that uses an older SDK cannot link the module.
 
 ## Development guide
 
-This module uses [Carthage](https://github.com/Carthage/Carthage) to manage native dependencies. You might notice that no frameworks are checked in to the `platform` folder of this repository. Before you can build the project run `carthage bootstrap` in this directory to checkout and build the reuired [SocketIO.framework](https://github.com/socketio/socket.io-client-swift) and its dependencies. Now copy all built frameworks from the `Carthage/Build/iOS` folder to `platform`.
+The native dependency is a Swift package. There are no frameworks in the `platform` folder and no Carthage step. Xcode resolves the package when you build the module, so the first build needs network access.
 
-You are responsible to manually integrate any dependency changes into the module. After you modified the Cartfile run the `carthage update` command. After that make sure to copy the built frameworks to the platform folder again. **Do not check-in the frameworks from the platform folder**
+The package is declared in two places:
 
-> ⚠️ Make sure the frameworks in `Carthage/Build/iOS` and `platform` are in sync before you build to avoid unexepcted behavior.
+1. `ti.socketio.xcodeproj` contains the package reference, so that the module compiles.
+2. `spm.json` next to the `manifest` declares the same package for the Titanium CLI. The CLI stores it in the `metadata.json` of the module zip. The linkage is `embedded`, so the package is compiled into the module framework and the app project is not changed.
 
+To build the module, run this command in the `ios` directory:
+
+```sh
+ti build -p ios --build-only
+```
+
+The zip file is written to the `dist` folder.
+
+## Update the native library
+
+1. Open `ti.socketio.xcodeproj` in Xcode and change the version rule of the `socket.io-client-swift` package.
+2. Set the same version in `spm.json` under `requirementMinimumVersion`.
+3. Rebuild the module. The CLI only reads `spm.json` when it packages the module.

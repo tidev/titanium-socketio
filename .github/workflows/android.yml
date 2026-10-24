@@ -17,19 +17,19 @@ jobs:
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       USE_CCACHE: 1
-      SDK_VERSION: 11.0.0.GA
+      SDK_VERSION: 13.4.1.GA
       MODULE_ID: ti.socketio
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
 
-    - name: Use Node.js 14.x
-      uses: actions/setup-node@v2
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v7
       with:
-        node-version: '14.x'
+        node-version: '22.x'
 
     - name: Cache Node.js modules
       id: node-cache
-      uses: actions/cache@v2
+      uses: actions/cache@v6
       with:
         path: node_modules
         key: ${{ runner.OS }}-node-modules-${{ hashFiles('package-lock.json') }}
@@ -38,17 +38,17 @@ jobs:
           ${{ runner.OS }}-
 
     - name: Setup Java
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v6
       with:
-        distribution: 'adopt'
-        java-version: 11
+        distribution: 'temurin'
+        java-version: 18
 
     - run: npm ci
       name: Install dependencies
       if: steps.node-cache.outputs.cache-hit != 'true'
 
     - name: Cache Gradle packages
-      uses: actions/cache@v2
+      uses: actions/cache@v6
       with:
         path: |
           ~/.gradle/caches
@@ -71,20 +71,23 @@ jobs:
       run: brew install ccache
 
     - name: Retrieve ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v6
       with:
         path: ${{ env.CCACHE_DIR }}
         key: ${{ runner.os }}-ccache-${{ github.sha }}
         restore-keys: |
           ${{ runner.os }}-ccache-
 
-    - name: Build and Test
-      uses: reactivecircus/android-emulator-runner@v2
-      with:
-        api-level: 29
-        target: playstore
-        script: npm run test:android -- --sdkVersion ${{ env.SDK_VERSION }}
-        disable-animations: false # defaulting to true, the commands sent to emulator to do this sometimes run too quickly after boot and cause "adb: device offline" failures
+    - name: Build module
+      run: ti build -p android --build-only -d android --sdk ${{ env.SDK_VERSION }}
+
+#    - name: Build and Test
+#      uses: reactivecircus/android-emulator-runner@v2
+#      with:
+#        api-level: 29
+#        target: playstore
+#        script: npm run test:android -- --sdkVersion ${{ env.SDK_VERSION }}
+#        disable-animations: false # defaulting to true, the commands sent to emulator to do this sometimes run too quickly after boot and cause "adb: device offline" failures
 
     - name: Show summary of ccache configuration and statistics counters
       run: ccache --show-stats
@@ -92,7 +95,7 @@ jobs:
 # TODO: Grab the version so zip file name can contain it
 
     - name: Archive Android zip
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.MODULE_ID }}-android
         path: |

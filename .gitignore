@@ -51,3 +51,7 @@ node_modules/
 
 # Test reports
 TESTS-*.xml
+
+# Ignored, see the README.md in platform/ for details
+/ios/platform/Starscream.xcframework
+/ios/platform/SocketIO.xcframework

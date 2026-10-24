@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Changed
+
+- Rewrote the module in Swift.
+- Updated the native client to socket.io-client-swift 16.1.1. The module now speaks the socket.io v3 and v4 protocol. Servers that run socket.io v2 are no longer supported.
+- The native client is resolved with Swift Package Manager through `spm.json`. The module needs Titanium SDK 13.1.0.GA or later.
+- The `path` option is passed to the native client instead of being ignored.
+
+### Fixed
+
+- Sockets connect automatically again unless `autoConnect: false` is set.
+- The connect timeout defaults to 20 seconds, same as the web client.
+- `emit()` sends each argument as a separate argument and calls the ack callback.
+- `once()` is available again.
+- `connect_timeout` fires to the handlers that were registered with `on()`.
+- Query parameters of the connect URL are passed as `connectParams`.
+
 ## [2.0.0] - 2019-02-06
 
 ### Added

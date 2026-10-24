@@ -1,0 +1,17 @@
+{
+  "dependencies": [
+    {
+      "remotePackageReference": "socket.io-client-swift",
+      "repositoryURL": "https://github.com/socketio/socket.io-client-swift",
+      "requirementKind": "upToNextMajorVersion",
+      "requirementMinimumVersion": "16.1.1",
+      "products": [
+        {
+          "productName": "SocketIO",
+          "frameworkName": "SocketIO",
+          "linkage": "embedded"
+        }
+      ]
+    }
+  ]
+}
