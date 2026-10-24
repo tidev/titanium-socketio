@@ -17,16 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     name: JavaScript
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v7
 
-    - name: Use Node.js 14.x
-      uses: actions/setup-node@v2
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v7
       with:
-        node-version: '14.x'
+        node-version: '22.x'
 
     - name: Cache Node.js modules
       id: node-cache
-      uses: actions/cache@v2
+      uses: actions/cache@v6
       with:
         path: node_modules
         key: ${{ runner.OS }}-node-modules-${{ hashFiles('package-lock.json') }}

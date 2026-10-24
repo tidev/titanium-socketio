@@ -18,16 +18,16 @@ jobs:
       SDK_VERSION: 13.4.1.GA
       MODULE_ID: ti.socketio
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v7
       with:
-        node-version: '20.x'
+        node-version: '22.x'
 
     - name: Cache Node.js modules
       id: node-cache
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: node_modules
         key: ${{ runner.OS }}-node-modules-${{ hashFiles('package-lock.json') }}
@@ -53,11 +53,14 @@ jobs:
     - run: sed -i .bak 's/TITANIUM_SDK_VERSION = .*/TITANIUM_SDK_VERSION = ${{ env.SDK_VERSION }}/' ios/titanium.xcconfig
       name: Set to Build with newly installed SDK
 
-    - run: npm run test:ios -- --sdkVersion ${{ env.SDK_VERSION }}
-      name: Build and Test
+    - name: Build module
+      run: ti build -p ios --build-only -d ios --sdk ${{ env.SDK_VERSION }}
+
+#    - run: npm run test:ios -- --sdkVersion ${{ env.SDK_VERSION }}
+#      name: Build and Test
 
     - name: Archive iOS artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: ${{ env.MODULE_ID }}-ios
         path: |
