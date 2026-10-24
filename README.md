@@ -5,9 +5,9 @@
 ## Requirements
 
 - [x] Android: Titanium SDK 9.0.0+
-- [x] iOS: Titanium SDK 7.4.0+ / Xcode 10.2 / Swift 5.0+
+- [x] iOS: Titanium SDK 13.1.0+ / Xcode 15+
 
-> 💡 The iOS module is built with Swift 5.0 and you need to have the same Swift version installed to be able to use this module. You can check your current Swift version by using swift -v from the terminal.
+> 💡 The iOS module version 4.x supports Socket.io Server 3.x/4.x. The native client is a Swift package, so Titanium SDK 13.1.0 or later is required.
 
 > 💡 The Android module version 4.x will support Socket.io Server 3.x/4.x
 

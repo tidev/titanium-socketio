@@ -3,105 +3,118 @@
 //  ti.socketio
 //
 //  Created by Hans Knöchel
-//  Copyright (c) 2022 TiDev. All rights reserved.
+//  Copyright (c) 2022-present TiDev. All rights reserved.
 //
 
 import UIKit
 import TitaniumKit
+import SocketIO
 
 @objc(TiSocketioModule)
 class TiSocketioModule: TiModule {
 
-  var managers: [String: SocketManagerProxy] = [:]
-  
+  private var managers: [String: SocketManagerProxy] = [:]
+
   func moduleGUID() -> String {
     return "65fbdc59-432f-40d8-8ea9-02799887db3c"
   }
-  
+
   override func moduleId() -> String! {
     return "ti.socketio"
   }
 
+  // MARK: Public API's
+
   @objc(connect:)
-  func connect(args: [Any]) -> SocketIOClientProxy {
-    guard let urlString = args.first as? String,
-          let url = URL(string: urlString) else {
-      fatalError("Missing required parameters")
+  func connect(args: [Any]) -> SocketIOClientProxy? {
+    guard let urlString = args.first as? String, let url = URL(string: urlString) else {
+      throwException("Invalid arguments", subreason: "connect() expects a URL string as first argument", location: "\(#file):\(#line)")
+      return nil
     }
 
     var options: [String: Any] = [:]
-
-    if args.count == 2 , let customOptions = args[1] as? [String: Any] {
+    if args.count > 1, let customOptions = args[1] as? [String: Any] {
       options = customOptions
     }
 
-    return lookupClient(for: url, and: options)
+    return lookupClient(for: url, options: options)
   }
 
   @objc(Manager:)
-  func Manager(args: [Any]) -> SocketManagerProxy {
+  func Manager(args: [Any]) -> SocketManagerProxy? {
     guard let urlString = args.first as? String, let url = URL(string: urlString) else {
-      fatalError("Missing required parameters")
+      throwException("Invalid arguments", subreason: "Manager() expects a URL string as first argument", location: "\(#file):\(#line)")
+      return nil
     }
 
     var options: [String: Any] = [:]
-    if args.count == 2 {
-      options = args[1] as! [String: Any]
+    if args.count > 1, let customOptions = args[1] as? [String: Any] {
+      options = customOptions
     }
-    
-    return SocketManagerProxy()._init(withPageContext: pageContext, and: url, options: options)
+
+    return SocketManagerProxy()._init(withPageContext: pageContext, url: url, options: options)
   }
 
-  private func lookupClient(for url: URL, and options: [String: Any]) -> SocketIOClientProxy {
+  // MARK: Private API's
+
+  /// Mirrors the lookup of the web client: one manager per host, the URL path is the namespace.
+  private func lookupClient(for url: URL, options jsOptions: [String: Any]) -> SocketIOClientProxy? {
     guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-      fatalError("Cannot construct URL components!")
+      throwException("Invalid arguments", subreason: "Cannot parse the URL \(url)", location: "\(#file):\(#line)")
+      return nil
     }
 
-    var _options = options
+    var options = jsOptions
 
+    // make sure we always have a scheme and port
     if urlComponents.scheme == nil {
       urlComponents.scheme = "https"
     }
     if urlComponents.port == nil {
-      if urlComponents.scheme == "http" || urlComponents.scheme == "ws" {
+      switch urlComponents.scheme ?? "" {
+      case "http", "ws":
         urlComponents.port = 80
-      } else if urlComponents.scheme == "https" || urlComponents.scheme == "wss" {
+      case "https", "wss":
         urlComponents.port = 443
+      default:
+        break
       }
     }
 
-    let path = !urlComponents.path.isEmpty ? urlComponents.path : "/"
-    if urlComponents.queryItems != nil && options["connectParams"] == nil {
+    // the path is the namespace and not part of the manager URL
+    let path = urlComponents.path.isEmpty ? "/" : urlComponents.path
+    urlComponents.path = ""
+
+    // assign parameters from the query string
+    if let queryItems = urlComponents.queryItems, options["connectParams"] == nil {
       var connectParams: [String: Any] = [:]
-      for queryItem in urlComponents.queryItems ?? [] {
-        connectParams[queryItem.name] = queryItem.value
+      for queryItem in queryItems {
+        connectParams[queryItem.name] = queryItem.value ?? ""
       }
+      options["connectParams"] = connectParams
     }
     urlComponents.query = nil
 
-    let cacheIdentifier: String = urlComponents.string ?? ""
-    
-    let forceNew = TiUtils.boolValue("forceNew", properties: options, def: false)
-    _options.removeValue(forKey: "forceNew")
-    let sameNamespace = self.managers[cacheIdentifier]?.manager.nsps[path] != nil
-    let newConnection = sameNamespace || forceNew
-    
-    var manager: SocketManagerProxy!
-    if newConnection {
-      manager = SocketManagerProxy()._init(withPageContext: pageContext,
-                                           and: urlComponents.url!,
-                                           options: _options)
-    } else {
-      if self.managers[cacheIdentifier] == nil {
-        manager = SocketManagerProxy()._init(withPageContext: pageContext, and: urlComponents.url!, options: options)
-        managers[cacheIdentifier] = manager
-      }
-      manager = self.managers[cacheIdentifier]
+    guard let managerURL = urlComponents.url, let cacheIdentifier = urlComponents.string else {
+      throwException("Invalid arguments", subreason: "Cannot construct the manager URL from \(url)", location: "\(#file):\(#line)")
+      return nil
     }
-    
-    NSLog("[WARN] path = " + path);
-    NSLog("[WARN] options = " + options.description);
 
-    return manager.socket([path, options])
+    let forceNew = TiUtils.boolValue("forceNew", properties: options, def: false)
+    options.removeValue(forKey: "forceNew")
+    let sameNamespace = managers[cacheIdentifier]?.manager.nsps[path] != nil
+    let newConnection = sameNamespace || forceNew
+
+    let manager: SocketManagerProxy
+    if newConnection {
+      manager = SocketManagerProxy()._init(withPageContext: pageContext, url: managerURL, options: options)
+    } else if let cachedManager = managers[cacheIdentifier] {
+      manager = cachedManager
+    } else {
+      manager = SocketManagerProxy()._init(withPageContext: pageContext, url: managerURL, options: options)
+      managers[cacheIdentifier] = manager
+    }
+
+    return manager.socket([path])
   }
 }

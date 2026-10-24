@@ -1,156 +1,133 @@
 //
-//  TiSocketioExampleProxy.swift
+//  SocketManagerProxy.swift
 //  ti.socketio
 //
 //  Created by Hans Knöchel
-//  Copyright (c) 2022 TiDev. All rights reserved.
+//  Copyright (c) 2022-present TiDev. All rights reserved.
 //
 
 import UIKit
 import TitaniumKit
+import SocketIO
 
 @objc(SocketManagerProxy)
 class SocketManagerProxy: TiProxy {
 
-  var manager: SocketManager!
-  var autoConnect: Bool = false
-  var timeout: Double = 2000.0
-  
-  func _init(withPageContext context: TiEvaluator!, and url: URL, options: [String: Any]) -> Self! {
+  private(set) var manager: SocketManager!
+
+  /// The web client connects automatically. The native client does not, so we emulate it.
+  private var autoConnect = true
+
+  /// Connection timeout in milliseconds, same default as the web client.
+  private var timeout: Double = 20000
+
+  func _init(withPageContext context: TiEvaluator!, url: URL, options: [String: Any]) -> Self! {
     super._init(withPageContext: context)
-    
-    autoConnect = TiUtils.boolValue("autoConnect", properties: options, def: false)
-    timeout = TiUtils.doubleValue("timeout", properties: options, def: 2000.0)
-    
-    let nativeOptions = convertOptions(options)
-    manager = SocketManager(socketURL: url, config: nativeOptions)
-    
+
+    autoConnect = TiUtils.boolValue("autoConnect", properties: options, def: true)
+    timeout = TiUtils.doubleValue("timeout", properties: options, def: 20000)
+
+    manager = SocketManager(socketURL: url, config: convertOptions(options))
+
     return self
   }
-  
+
   // MARK: Public API's
 
   @objc(socket:)
-  func socket(_ args: [Any]) -> SocketIOClientProxy {
+  func socket(_ args: [Any]) -> SocketIOClientProxy? {
     guard let path = args.first as? String else {
-      fatalError("Missing required parameters")
+      throwException("Invalid arguments", subreason: "socket() expects a namespace string as first argument", location: "\(#file):\(#line)")
+      return nil
     }
 
-    let socket: SocketIOClient = {
-      if (path == "/") {
-        NSLog("[WARN] def socket");
+    let socket = path == "/" ? manager.defaultSocket : manager.socket(forNamespace: path)
 
-        return manager.defaultSocket
-      } else {
-        NSLog("[WARN] socket for ns = " + path);
-        return manager.socket(forNamespace: path)
-      }
-    }()
-    
-    let socketProxy = SocketIOClientProxy()._init(withPageContext: pageContext, socket: socket, manager: self)!
+    guard let socketProxy = SocketIOClientProxy()._init(withPageContext: pageContext, socket: socket, manager: self) else {
+      return nil
+    }
+
     if autoConnect {
-      NSLog("[WARN] autoconenct");
-
-      if fabs(timeout - 0.0) < Double.ulpOfOne {
-        NSLog("[WARN] connect");
-
+      if abs(timeout) < Double.ulpOfOne {
         socket.connect()
       } else {
-        NSLog("[WARN] connect after timeout = " + timeout.description);
-
-        socket.connect(timeoutAfter: timeout / 1000.0) {
-          socketProxy.fireEvent("connect_timeout")
+        socket.connect(timeoutAfter: timeout / 1000.0) { [weak socketProxy] in
+          socketProxy?.fireClientEvent("connect_timeout", data: [])
         }
       }
-    } else {
-      NSLog("[WARN] no autoconnect");
-
     }
-    
+
     return socketProxy
   }
-  
+
   @objc(open:)
-  func `open`(args: [Any]?) {
-    self.connect(args: args)
+  func open(args: [Any]?) {
+    connect(args: args)
   }
-  
+
   @objc(connect:)
   func connect(args: [Any]?) {
     manager.connect()
   }
-  
+
   @objc(close:)
   func close(args: [Any]?) {
-    self.close(args: args)
+    disconnect(args: args)
   }
-  
+
   @objc(disconnect:)
   func disconnect(args: [Any]?) {
     manager.disconnect()
   }
-  
+
   @objc(toString:)
   override func toString(_ args: Any!) -> Any! {
-    return "SocketManager (\(self)) \(manager!)"
+    return "SocketManager (\(Unmanaged.passUnretained(self).toOpaque())) \(manager!)"
   }
 
   // MARK: Private API's
-  
+
+  /// Maps the option names of the web client to the ones of the native client.
   private func convertOptions(_ jsOptions: [String: Any]) -> [String: Any] {
     var options = jsOptions
-    
-    options = self.options(removeUnsupported: options, optionName: "path", silent: false)
-    options = self.options(options, rename: "reconnection", toName: "reconnects")
-    options = self.options(options, rename: "reconnectionAttempts", toName: "reconnectAttempts")
-    options = self.options(options, rename: "reconnectionDelay", toName: "reconnectWait")
-    
-    if options["reconnectWait"] != nil {
-      options["reconnectWait"] = TiUtils.doubleValue("reconnectWait", properties: options, def: 1000.0) / 1000
+
+    rename(&options, "reconnection", to: "reconnects")
+    rename(&options, "reconnectionAttempts", to: "reconnectAttempts")
+    rename(&options, "reconnectionDelay", to: "reconnectWait")
+    rename(&options, "reconnectionDelayMax", to: "reconnectWaitMax")
+
+    // the web client uses milliseconds, the native client whole seconds
+    for key in ["reconnectWait", "reconnectWaitMax"] where options[key] != nil {
+      let milliseconds = TiUtils.doubleValue(key, properties: options, def: 0)
+      options[key] = max(1, Int((milliseconds / 1000).rounded()))
     }
-    
-    options = self.options(options, rename: "reconnectionDelayMax", toName: "reconnectionWaitMax")
-    
-    if options["reconnectWaitMax"] != nil {
-      options["reconnectWaitMax"] = TiUtils.doubleValue("reconnectWaitMax", properties: options, def: 5000.0) / 1000
-    }
-    
-    options = self.options(removeUnsupported: options, optionName: "timeout", silent: true)
-    options = self.options(removeUnsupported: options, optionName: "autoConnect", silent: true)
-    options = self.options(removeUnsupported: options, optionName: "parser", silent: false)
-    
-    let queryParams = options["query"]
-    if queryParams != nil {
+
+    // handled by this proxy, not by the native client
+    removeUnsupported(&options, "timeout", silent: true)
+    removeUnsupported(&options, "autoConnect", silent: true)
+
+    removeUnsupported(&options, "parser", silent: false)
+
+    if let queryParams = options.removeValue(forKey: "query") {
       options["connectParams"] = queryParams
-      options.removeValue(forKey: "query")
     }
 
     return options
   }
-  
-  private func options(_ options: [String: Any], rename fromName: String, toName: String) -> [String: Any] {
-    var optionsCopy = options
-    let optionValue = optionsCopy[fromName]
-    if optionValue == nil {
-      return optionsCopy
+
+  private func rename(_ options: inout [String: Any], _ fromName: String, to toName: String) {
+    guard let optionValue = options.removeValue(forKey: fromName) else {
+      return
     }
-    
-    optionsCopy.removeValue(forKey: fromName)
-    optionsCopy[toName] = optionValue
-    return optionsCopy
+    options[toName] = optionValue
   }
 
-  private func options(removeUnsupported options: [String: Any], optionName: String, silent: Bool) -> [String: Any] {
-    var optionsCopy = options
-    let optionValue = optionsCopy[optionName]
-    if optionValue == nil {
-      return optionsCopy
+  private func removeUnsupported(_ options: inout [String: Any], _ optionName: String, silent: Bool) {
+    guard options.removeValue(forKey: optionName) != nil else {
+      return
     }
-    
-    if (!silent) {
-      NSLog("[WARN] The option \(optionName) is not supported on the iOS client and will be ignored.");
+    if !silent {
+      NSLog("[WARN] The option \(optionName) is not supported on the iOS client and will be ignored.")
     }
-    optionsCopy.removeValue(forKey: optionName)
-    return optionsCopy
   }
 }
